@@ -259,7 +259,9 @@ typedef struct Globals {
     cdir_file_hdr   crec;          /* used in unzip.c, extract.c, misc.c */
     ecdir_rec       ecrec;         /* used in unzip.c, extract.c */
     z_stat   statbuf;              /* used by main, mapname, check_for_newer */
-
+    
+    int      zip64;                /* true if Zip64 info in extra field */
+    
     int      mem_mode;
     uch      *outbufptr;           /* extract.c static */
     ulg      outsize;              /* extract.c static */
