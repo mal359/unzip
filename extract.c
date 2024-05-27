@@ -332,7 +332,7 @@ To unzip the file anyway, rerun the command with UNZIP_DISABLE_ZIPBOMB_DETECTION
 
 
 /* A growable list of spans. */
-typedef zoff_t bound_t;
+typedef zusz_t bound_t;
 typedef struct {
     bound_t beg;        /* start of the span */
     bound_t end;        /* one past the end of the span */
@@ -522,7 +522,8 @@ int extract_or_test_files(__G)    /* return PK-type error code */
         return PK_MEM;
     }
     if ((G.extra_bytes != 0 &&
-         cover_add((cover_t *)G.cover, 0, G.extra_bytes) != 0) ||
+         cover_add((cover_t *)G.cover,
+                   (bound_t)0, (bound_t)G.extra_bytes) != 0) ||
         (G.ecrec.have_ecr64 &&
          cover_add((cover_t *)G.cover, G.ecrec.ec64_start,
                    G.ecrec.ec64_end) != 0) ||
@@ -1223,7 +1224,7 @@ static int extract_or_test_entrylist(__G__ numchunk,
         /* seek_zipf(__G__ pInfo->offset);  */
         request = G.pInfo->offset + G.extra_bytes;
         if (uO.zipbomb == TRUE) {
-          if (cover_within((cover_t *)G.cover, request)) {
+          if (cover_within((cover_t *)G.cover, (bound_t)request)) {
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(OverlappedComponents)));
             return PK_BOMB;

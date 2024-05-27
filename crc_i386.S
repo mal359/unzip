@@ -303,5 +303,7 @@ _crc32:                         /* ulg crc32(ulg crc, uch *buf, extent len) */
 
 #endif /* !USE_ZLIB && !CRC_TABLE_ONLY */
 
+#if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack, "", @progbits
 .previous
+#endif
