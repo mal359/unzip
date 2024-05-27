@@ -266,6 +266,7 @@ typedef struct Globals {
     int      reported_backslash;   /* extract.c static */
     int      disk_full;
     int      newfile;
+    void     **cover;              /* used in extract.c for bomb detection */
 
     int      didCRlast;            /* fileio static */
     ulg      numlines;             /* fileio static: number of lines printed */
