@@ -2232,6 +2232,7 @@ static int TestExtraField(__G__ ef, ef_len)
     unsigned ebLen;
     unsigned eb_cmpr_offs = 0;
     int r;
+    ush eb_compr_method;
 
     /* we know the regular compressed file data tested out OK, or else we
      * wouldn't be here ==> print filename if any extra-field errors found
@@ -2475,6 +2476,15 @@ static int test_compr_eb(__G__ eb, eb_size, compr_offset, test_uc_ebdata)
         return PK_ERR;            /* compressed & uncompressed
                                    * should match in STORED
                                    * method */
+
+    /* 2015-02-10 Mancha(?), Michal Zalewski, Tomas Hoger, SMS.
+     * For STORE method, compressed and uncompressed sizes must agree.
+     * http://www.info-zip.org/phpBB3/viewtopic.php?f=7&t=450
+     */
+    eb_compr_method = makeword( eb + (EB_HEADSIZE + compr_offset));
+    if ((eb_compr_method == STORED) &&
+     (eb_size != compr_offset + EB_CMPRHEADLEN + eb_ucsize))
+        return PK_ERR;
 
     if (
 #ifdef INT_16BIT
