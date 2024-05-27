@@ -116,7 +116,7 @@ int list_files(__G)    /* return PK-type error code */
     ulg acl_size, tot_aclsize=0L, tot_aclfiles=0L;
 #endif
     min_info info;
-    char methbuf[8];
+    char methbuf[80];
     static ZCONST char dtype[]="NXFS";  /* see zi_short() */
     static ZCONST char Far method[NUM_METHODS+1][8] =
         {"Stored", "Shrunk", "Reduce1", "Reduce2", "Reduce3", "Reduce4",

@@ -651,7 +651,7 @@ vax:		unzips	# general-purpose VAX target (not counting VMS)
 bsd:		_bsd	# generic BSD (BSD 4.2 & Ultrix handled in unzip.h)
 
 _bsd:		unix_make
-	$(MAKE) unzips CF="$(CF) -DBSD"
+	$(MAKE) unzips CF="$(CF) -DBSD -DUNIX"
 
 #----------------------------------------------------------------------------
 #  SysV group (for extern long timezone and ioctl.h instead of sgtty.h):
