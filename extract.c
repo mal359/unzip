@@ -342,6 +342,7 @@ typedef struct {
     span_t *span;       /* allocated, distinct, and sorted list of spans */
     size_t num;         /* number of spans in the list */
     size_t max;         /* allocated number of spans (num <= max) */
+    unsigned long count;
 } cover_t;
 
 static size_t cover_find OF((cover_t *, bound_t));
@@ -352,17 +353,23 @@ static int cover_add OF((cover_t *, bound_t, bound_t));
  * Return the index of the first span in cover whose beg is greater than val.
  * If there is no such span, then cover->num is returned.
  */
-static size_t cover_find(cover, val)
+static size_t cover_find(cover, val, op)
     cover_t *cover;
     bound_t val;
+    int op;
 {
     size_t lo = 0, hi = cover->num;
-    while (lo < hi) {
-        size_t mid = (lo + hi) >> 1;
-        if (val < cover->span[mid].beg)
+    bound_t tmp_val;
+    if (!op) {
+            tmp_val = cover->span[mid].beg;
+        } else {
+            tmp_val = cover->span[mid].end;
+        }
+        if (val < tmp_val) {
             hi = mid;
-        else
+        } else {
             lo = mid + 1;
+        }
     }
     return hi;
 }
@@ -372,8 +379,14 @@ static int cover_within(cover, val)
     cover_t *cover;
     bound_t val;
 {
-    size_t pos = cover_find(cover, val);
+    size_t pos = cover_find(cover, val, 0);
     return pos > 0 && val < cover->span[pos - 1].end;
+}
+
+static int is_exceed_max_overlaps(cover, val)
+    cover_t *cover;
+{
+    return cover->count >= G.UzO.max_overlaps;
 }
 
 /*
@@ -393,7 +406,8 @@ static int cover_add(cover, beg, end)
     bound_t beg;
     bound_t end;
 {
-    size_t pos;
+    size_t pos_beg;
+    size_t pos_end;
     int prec, foll;
 
     if (beg >= end)
@@ -402,31 +416,76 @@ static int cover_add(cover, beg, end)
 
     /* Find where the new span should go, and make sure that it does not
        overlap with any existing spans. */
-    pos = cover_find(cover, beg);
-    if ((pos > 0 && beg < cover->span[pos - 1].end) ||
-        (pos < cover->num && end > cover->span[pos].beg))
-        return 1;
+    pos_beg = cover_find(cover, beg, 0);
+    pos_end = cover_find(cover, end, 1);
 
     /* Check for adjacencies. */
-    prec = pos > 0 && beg == cover->span[pos - 1].end;
-    foll = pos < cover->num && end == cover->span[pos].beg;
+    prec = pos_beg > 0 && beg <= cover->span[pos_beg - 1].end;
+    foll = pos_beg < cover->num && end >= cover->span[pos_beg].beg;
     if (prec && foll) {
+        if (beg < cover->span[pos_beg - 1].end || end > cover->span[pos_beg].beg) {
+            cover->count++;
+        }
+
         /* The new span connects the preceding and following spans. Merge the
            following span into the preceding span, and delete the following
            span. */
-        cover->span[pos - 1].end = cover->span[pos].end;
-        cover->num--;
-        memmove(cover->span + pos, cover->span + pos + 1,
-                (cover->num - pos) * sizeof(span_t));
+        if (end <= cover->span[pos_beg].end) {
+            cover->span[pos_beg - 1].end = cover->span[pos_beg].end;
+            cover->num--;
+            memmove(cover->span + pos_beg, cover->span + pos_beg + 1,
+                    (cover->num - pos_beg) * sizeof(span_t));
+        } else {
+            if (pos_end == cover->num) {
+                cover->span[pos_beg - 1].end = end;
+                cover->num = cover->num - (pos_end - pos_beg);
+            } else if (end >= cover->span[pos_end].beg) {
+                cover->span[pos_beg - 1].end = cover->span[pos_end].end;
+                memmove(cover->span + pos_beg, cover->span + pos_end + 1,
+                        (cover->num - 1 - pos_end) * sizeof(span_t));
+                cover->num = cover->num - (pos_end - pos_beg) - 1;
+            } else {
+                cover->span[pos_beg - 1].end = end;
+                memmove(cover->span + pos_beg, cover->span + pos_end,
+                        (cover->num - 1 - pos_end + 1) * sizeof(span_t));
+                cover->num = cover->num - (pos_end - pos_beg);
+            }
+        }
     }
-    else if (prec)
+    else if (prec) {
         /* The new span is adjacent only to the preceding span. Extend the end
            of the preceding span. */
-        cover->span[pos - 1].end = end;
-    else if (foll)
+        if (beg < cover->span[pos_beg - 1].end) {
+            cover->count++;
+        }
+        if (end > cover->span[pos_beg - 1].end) {
+            cover->span[pos_beg - 1].end = end;
+        }
+    }
+    else if (foll) {
+        if (end > cover->span[pos_beg].beg) {
+                cover->count++;
+        }
         /* The new span is adjacent only to the following span. Extend the
            beginning of the following span. */
-        cover->span[pos].beg = beg;
+        cover->span[pos_beg].beg = beg;
+        if (end > cover->span[pos_beg].end) {
+            if (pos_end == cover->num) {
+                cover->span[pos_beg].end = end;
+                cover->num = cover->num - (pos_end - pos_beg) + 1;
+            } else if (end >= cover->span[pos_end].beg) {
+                cover->span[pos_beg].end = cover->span[pos_end].end;
+                memmove(cover->span + pos_beg + 1, cover->span + pos_end + 1,
+                        (cover->num - 1 - pos_end) * sizeof(span_t));
+                cover->num = cover->num - (pos_end - pos_beg);
+            } else {
+               cover->span[pos_beg].end = end;
+                memmove(cover->span + pos_beg + 1, cover->span + pos_end,
+                        (cover->num - 1 - pos_end + 1) * sizeof(span_t));
+                cover->num = cover->num - (pos_end - pos_beg) + 1;
+            }
+        }
+    }
     else {
         /* The new span has gaps between both the preceding and the following
            spans. Assure that there is room and insert the span.  */
@@ -438,11 +497,11 @@ static int cover_add(cover, beg, end)
             cover->span = span;
             cover->max = max;
         }
-        memmove(cover->span + pos + 1, cover->span + pos,
-                (cover->num - pos) * sizeof(span_t));
+        memmove(cover->span + pos_beg + 1, cover->span + pos_beg,
+                (cover->num - pos_beg) * sizeof(span_t));
         cover->num++;
-        cover->span[pos].beg = beg;
-        cover->span[pos].end = end;
+        cover->span[pos_beg].beg = beg;
+        cover->span[pos_beg].end = end;
     }
     return 0;
 }
@@ -518,6 +577,7 @@ int extract_or_test_files(__G)    /* return PK-type error code */
         ((cover_t *)G.cover)->max = 0;
     }
     ((cover_t *)G.cover)->num = 0;
+    ((cover_t *)G.cover)->count = 0;
     if (cover_add((cover_t *)G.cover,
                   G.extra_bytes + G.ecrec.offset_start_central_directory,
                   G.extra_bytes + G.ecrec.offset_start_central_directory +
@@ -1229,7 +1289,7 @@ static int extract_or_test_entrylist(__G__ numchunk,
         /* seek_zipf(__G__ pInfo->offset);  */
         request = G.pInfo->offset + G.extra_bytes;
         if (uO.zipbomb == TRUE) {
-          if (cover_within((cover_t *)G.cover, (bound_t)request)) {
+          if (is_exceed_max_overlaps((cover_t *)G.cover)) {
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(OverlappedComponents)));
             return PK_BOMB;
@@ -2879,12 +2939,12 @@ char *fnfilter(raw, space, size)   /* convert name to safely printable form */
     if (wslen != (size_t)-1)
     {
         /* Apparently valid Unicode.  Allocate wide-char storage. */
-        wstring = (wchar_t *)malloc((wslen + 1) * sizeof(wchar_t));
+        wstring = (wchar_t *)calloc((wslen + 1), sizeof(wchar_t));
         if (wstring == NULL) {
             strcpy( (char *)space, raw);
             return (char *)space;
         }
-        wostring = (wchar_t *)malloc(2 * (wslen + 1) * sizeof(wchar_t));
+        wostring = (wchar_t *)calloc(2 * (wslen + 1), sizeof(wchar_t));
         if (wostring == NULL) {
             free(wstring);
             strcpy( (char *)space, raw);

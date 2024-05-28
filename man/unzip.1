@@ -25,7 +25,7 @@
 unzip \- list, test and extract compressed files in a ZIP archive
 .PD
 .SH SYNOPSIS
-\fBunzip\fP [\fB\-Z\fP] [\fB\-cflptTuvz\fP[\fBabjnoqsCDKLMUVWX$/:^\fP]]
+\fBunzip\fP [\fB\-Z\fP] [\fB\-cflptTuvz\fP[\fBabjnoqsCDKLMUVWX$/:^\fP][\fB\-g num\fP]]
 \fIfile\fP[\fI.zip\fP] [\fIfile(s)\fP\ .\|.\|.]
 [\fB\-x\fP\ \fIxfile(s)\fP\ .\|.\|.] [\fB\-d\fP\ \fIexdir\fP]
 .PD
@@ -195,6 +195,10 @@ but will be in future releases.
 .TP
 .B \-z
 display only the archive comment.
+.IP \fB\-g\fP\ \fInum\fP
+limit the number of overlap files. When the number of
+overlap files exceeds the num we set, it is a bomb. the num
+is a decimal number.
 .PD
 .\" =========================================================================
 .SH MODIFIERS

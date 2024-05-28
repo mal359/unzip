@@ -2425,7 +2425,7 @@ char *local_to_utf8_string(local_string)
   */
 
  /* set this to the max bytes an escape can be */
-#define MAX_ESCAPE_BYTES 8
+#define MAX_ESCAPE_BYTES 10
 
 char *wide_to_escape_string(wide_char)
   zwchar wide_char;

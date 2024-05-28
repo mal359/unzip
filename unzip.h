@@ -562,6 +562,7 @@ typedef struct _UzpOpts {
 #endif
   int zipbomb;
 #endif /* !FUNZIP */
+    unsigned long max_overlaps;  /* Maximum number of overlaps allowed */
 } UzpOpts;
 
 /* intended to be a private struct: */

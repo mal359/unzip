@@ -4,7 +4,7 @@ NAME
        unzip - list, test and extract compressed files in a ZIP archive
 
 SYNOPSIS
-       unzip  [-Z] [-cflptTuvz[abjnoqsCDKLMUVWX$/:^]] file[.zip] [file(s) ...]
+       unzip  [-Z] [-cflptTuvz[abjnoqsCDKLMUVWX$/:^][-g num]] file[.zip] [file(s) ...]
        [-x xfile(s) ...] [-d exdir]
 
 DESCRIPTION
@@ -177,6 +177,10 @@ OPTIONS
               implemented but will be in future releases.
 
        -z     display only the archive comment.
+       -g num
+              limit the number of overlap files. When the number of overlap f-
+              iles exceeds the num we set, it is a bomb. the num is a decimal
+              number.
 
 MODIFIERS
        -a     convert  text files.  Ordinarily all files are extracted exactly
