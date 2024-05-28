@@ -140,7 +140,8 @@ DOCS = funzip.txt unzip.txt unzipsfx.txt zipgrep.txt zipinfo.txt
 
 # list of supported systems/targets in this version
 SYSTEMG1 = generic generic_gcc  generic_pkg generic_gccpkg
-SYSTEMG2 = generic1 generic2 generic3 generic_bz2 generic_zlib generic_shlib
+SYSTEMG2 = generic1 generic2 generic3 
+SYSTEMG3 = generic_bz2 generic_zlib generic_shlib generic_zstd
 SYSTEMS1 = 386i 3Bx 7300 7300_gcc aix aix_rt amdahl amdahl_eft apollo aviion
 SYSTEMS2 = bsd bsdi bsdi_noasm bull coherent convex cray cray_opt cyber_sgi
 SYSTEMS3 = cygwin dec dnix encore eta freebsd gcc gould haiku hk68 hp hpux
@@ -190,6 +191,7 @@ list:
 	@echo ""
 	@echo  "	$(SYSTEMG1)"
 	@echo  "	$(SYSTEMG2)"
+	@echo  "	$(SYSTEMG3)"
 	@echo ""
 	@echo  "	$(SYSTEMS1)"
 	@echo  "	$(SYSTEMS2)"
@@ -571,6 +573,14 @@ generic_bz2:	unix_make
 	$(MAKE) $(MAKEF) unzips D_USE_BZ2="-DUSE_BZIP2"\
 	 L_BZ2="-lbz2" LIBBZ2="$(IZ_OUR_BZIP2_DIR)/libbz2.a" \
 	 CC_BZ="$(CC)" CFLAGS_BZ="$(CFLAGS)"
+
+# Generic unzip and funzip target using either shared or static libzstd for
+# zstd compression method.
+
+generic_zstd:	unix_make
+	@echo\
+ "This target assumes zstd is already installed."
+	$(MAKE) unzip funzip CF="$(CF) -DUSE_ZSTD" LF2="-lzstd $(LF2)"
 
 # Generic unzip and funzip target using either shared or static zlib for
 # inflate rather than the original UnZip version.  (libz was libgz prior
