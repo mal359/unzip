@@ -7,7 +7,7 @@
   also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
 */
 /*
- * crc_i386.S, optimized CRC calculation function for Zip and UnZip,
+ * crc_amd64.S, optimized CRC calculation function for Zip and UnZip,
  * created by Paul Kienitz and Christian Spieler.  Last revised 07 Jan 2007.
  *
  * GRR 961110:  incorporated Scott Field optimizations from win32/crc_i386.asm
@@ -31,12 +31,12 @@
  *
  * SPC 070107:  Added conditional switch to deactivate crc32() compilation.
  *
+ * MAL 052724:  Translated to AMD64.
+ *
  * FLAT memory model assumed.  Calling interface:
  *   - args are pushed onto the stack from right to left,
  *   - return value is given in the EAX register,
- *   - all other registers (with exception of EFLAGS) are preserved. (With
- *     GNU C 2.7.x, %edx and %ecx are `scratch' registers, but preserving
- *     them nevertheless adds only 4 single byte instructions.)
+ *   - all other registers (with exception of EFLAGS) are preserved.
  *
  * This source generates the function
  * ulg crc32(ulg crc, ZCONST uch *buf, extent len).
@@ -298,7 +298,7 @@ _crc32:                         /* ulg crc32(ulg crc, uch *buf, extent len) */
                 ret
 
 #else
- error: this asm version is for 386 only
+ error: this asm version is for AMD64 only
 #endif /* i386 || _i386 || _I386 || __i386 */
 
 #endif /* !USE_ZLIB && !CRC_TABLE_ONLY */

@@ -610,7 +610,7 @@ Usage: unzip %s[-opts[modifiers]] file[.zip] [list] [-x xlist] [-d fm]\n \
 \n  file[.zip] may be a wildcard.  %s\n";
 #else /* !VM_CMS */
 static ZCONST char Far UnzipUsageLine2[] = "\
-Usage: unzip %s[-opts[modifiers][-g num]] file[.zip] [list] [-x xlist] [-d exdir]\n \
+Usage: unzip %s[-opts[modifiers]] file[.zip] [list] [-x xlist] [-d exdir]\n \
  Default action is to extract files in list, except those in xlist, to exdir;\n\
   file[.zip] may be a wildcard.  %s\n";
 #endif /* ?VM_CMS */
@@ -652,8 +652,7 @@ static ZCONST char Far UnzipUsageLine3[] = "\n\
   -f  freshen existing files, create none    -t  test compressed archive data\n\
   -u  update files, create if necessary      -z  display archive comment only\n\
   -v  list verbosely/show version info     %s\n\
-  -x  exclude files that follow (in xlist)   -d  extract files into exdir\n\
-  -g  limit the number of overlap files\n";
+  -x  exclude files that follow (in xlist)   -d  extract files into exdir\n";
 #endif /* ?VM_CMS */
 #endif /* ?MACOS */
 
@@ -1365,7 +1364,7 @@ int uz_opts(__G__ pargc, pargv)
     extern char OEM_CP[MAX_CP_NAME];
     extern char ISO_CP[MAX_CP_NAME];
 #endif
-    uO.max_overlaps = (unsigned long)(-1);  /* if not set, uncheck overlaps */
+    
     while (++argv, (--argc > 0 && *argv != NULL && **argv == '-')) {
         s = *argv + 1;
         while ((c = *s++) != 0) {    /* "!= 0":  prevent Turbo C warning */
@@ -1526,26 +1525,6 @@ int uz_opts(__G__ pargc, pargv)
                         uO.acorn_nfs_ext = TRUE;
                     break;
 #endif /* RISCOS || ACORN_FTYPE_NFS */
-#ifdef UNIX
-                case('g'):  /* set overlap entries */
-                    if (negative) { // invalid param, eg: --g
-                        Info(slide, 0x401, ((char *)slide,
-                          "error: invalid param, eg: unzip --g"));
-                        return(PK_PARAM);
-                    } else {
-                        if (argc > 1) {
-                            char *leftover;
-                            --argc;
-                            ++argv;
-                            uO.max_overlaps = strtoul(*argv, &leftover, 10);
-                        } else {     /* else pwdarg points at decryption password */
-                                Info(slide, 0x401, ((char *)slide,
-                                  "error: invalid param, -g need add decimal number"));
-                                return(PK_PARAM);
-                        }
-                    }
-                    break;
-#endif
                 case ('h'):    /* just print help message and quit */
                     if (showhelp == 0) {
 #ifndef SFX
@@ -2276,7 +2255,6 @@ static void help_extended(__G)
   "         information.  Also can be added to other list commands for more",
   "         verbose output.",
   "  -z   Display only archive comment.",
-  "  -g   Limit the number of overlap files.",
   "",
   "unzip modifiers:",
   "  -a   Convert text files to local OS format.  Convert line ends, EOF",
