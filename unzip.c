@@ -2274,7 +2274,7 @@ static void help_extended(__G)
   "  -i   [MacOS] Ignore filenames in MacOS extra field.  Instead, use name in",
   "         standard header.",
   "  -j   Junk paths and deposit all files in extraction directory.",
-  "  -J   [BeOS] Junk file attributes.  [MacOS] Ignore MacOS specific info.",
+  "  -J   [BeOS, Haiku] Junk file attributes.  [MacOS] Ignore MacOS specific info.",
   "  -K   [AtheOS, BeOS, Unix] Restore SUID/SGID/Tacky file attributes.",
   "  -L   Convert to lowercase any names from uppercase only file system.",
   "  -LL  Convert all files to lowercase.",
