@@ -2356,7 +2356,7 @@ void init_conversion_charsets()
       char *lc = setlocale(LC_CTYPE, "");
 
       if (lc && lc[0]) {
-        // Compare up to the dot, if it exists, e.g. en_US.UTF-8
+        /* Compare up to the dot, if it exists, e.g. en_US.UTF-8 */
         for (lcLen = 0; lc[lcLen] != '.' && lc[lcLen] != ':' && lc[lcLen] != '\0'; ++lcLen);
 
         for (i = 0; i < tableLen; i += 2)
