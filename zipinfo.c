@@ -1955,7 +1955,7 @@ static int zi_short(__G)   /* return PK-type error code */
     int         k, error, error_in_archive=PK_COOL;
     unsigned    hostnum, hostver, methid, methnum, xattr;
     char        *p, workspace[12], attribs[16];
-    char        methbuf[5];
+    char        methbuf[1+5+1];
     static ZCONST char dtype[5]="NXFS"; /* normal, maximum, fast, superfast */
     static ZCONST char Far os[NUM_HOSTS+1][4] = {
         "fat", "ami", "vms", "unx", "cms", "atr", "hpf", "mac", "zzz",
