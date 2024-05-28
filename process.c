@@ -203,6 +203,8 @@ static ZCONST char Far Cent64EndSigSearchOff[] =
 #endif
 static ZCONST char Far ZipfileCommTrunc1[] =
   "\ncaution:  zipfile comment truncated\n";
+static ZCONST char Far FileNameTooLong[] =
+  "%s: error: %s (truncated): %s\n";
 #ifndef NO_ZIPINFO
    static ZCONST char Far NoZipfileComment[] =
      "There is no zipfile comment.\n";
@@ -391,6 +393,17 @@ int process_zipfiles(__G)    /* return PK-type error code */
         Trace((stderr, "do_wild( %s ) returns %s\n", G.wildzipfn, G.zipfn));
 
         lastzipfn = G.zipfn;
+
+        if (strlen(G.wildzipfn) > strlen(G.zipfn))
+        {
+            Info(slide, 1, ((char *)slide,
+                            LoadFarString(FileNameTooLong),
+                            uO.zipinfo_mode? LoadFarStringSmall(Zipnfo) : LoadFarStringSmall(Unzip),
+                            G.zipfn, strerror(ENAMETOOLONG)));
+
+            free_G_buffers(__G);
+            return PK_NOZIP;
+        }
 
         /* print a blank line between the output of different zipfiles */
         if (!uO.qflag  &&  error != PK_NOZIP  &&  error != IZ_DIR
@@ -1282,7 +1295,8 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
             G.ecrec.number_this_disk, ecloc64_total_disks); fflush(stdout);
 #endif
     if ((G.ecrec.number_this_disk != 0xFFFF) &&
-        (G.ecrec.number_this_disk != ecloc64_total_disks - 1)) {
+        (G.ecrec.number_this_disk != ecloc64_total_disks - 1) &&
+        (ecloc64_total_disks != 0)) {
       /* Note: For some unknown reason, the developers at PKWARE decided to
          store the "zip64 total disks" value as a counter starting from 1,
          whereas all other "split/span volume" related fields use 0-based
@@ -1292,6 +1306,9 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
          When this is not the case, the found ecrec64 locator cannot be valid.
          -> This is not a Zip64 archive.
        */
+      /* There are archive creators that put 0 in total disks when it should
+         be 1.  We should handle this.  This is done by the added check above.
+      */
       Trace((stderr,
              "\ninvalid ECLOC64, differing disk# (ECR %u, ECL64 %lu)\n",
              G.ecrec.number_this_disk, ecloc64_total_disks - 1));
