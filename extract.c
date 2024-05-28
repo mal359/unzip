@@ -44,6 +44,7 @@
 #endif
 #include "crc32.h"
 #include "crypt.h"
+#include <wctype.h>
 
 #define GRRDUMP(buf,len) { \
     int i, j; \
@@ -342,6 +343,10 @@ typedef struct {
     size_t num;         /* number of spans in the list */
     size_t max;         /* allocated number of spans (num <= max) */
 } cover_t;
+
+static size_t cover_find OF((cover_t *, bound_t));
+static int cover_within OF((cover_t *, bound_t));
+static int cover_add OF((cover_t *, bound_t, bound_t));
 
 /*
  * Return the index of the first span in cover whose beg is greater than val.
