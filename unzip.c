@@ -568,26 +568,18 @@ static ZCONST char Far ZipInfoUsageLine3[] = "miscellaneous options:\n\
 UnZip %d.%d%d%s of %s, by Info-ZIP.  For more details see: unzip -v.\n\n";
 # ifdef COPYRIGHT_CLEAN
    static ZCONST char Far UnzipUsageLine1v[] = "\
-UnZip %d.%d%d%s of %s, by Info-ZIP.  Maintained by C. Spieler.  Send\n\
-bug reports using http://www.info-zip.org/zip-bug.html; see README for details.\
-\n\n";
+UnZip %d.%d%d%s of %s, by Info-ZIP.  Maintained by C. Spieler.\n\n";
 # else
    static ZCONST char Far UnzipUsageLine1v[] = "\
-UnZip %d.%d%d%s of %s, by Info-ZIP.  UnReduce (c) 1989 by S. H. Smith.\n\
-Send bug reports using //www.info-zip.org/zip-bug.html; see README for details.\
-\n\n";
+UnZip %d.%d%d%s of %s, by Info-ZIP.  UnReduce (c) 1989 by S. H. Smith.\n\n";
 # endif /* ?COPYRIGHT_CLEAN */
 #else /* !VMS */
 # ifdef COPYRIGHT_CLEAN
    static ZCONST char Far UnzipUsageLine1[] = "\
-UnZip %d.%d%d%s of %s, by Info-ZIP.  Maintained by C. Spieler.  Send\n\
-bug reports using http://www.info-zip.org/zip-bug.html; see README for details.\
-\n\n";
+UnZip %d.%d%d%s of %s, by Info-ZIP.  Maintained by C. Spieler.\n\n";
 # else
    static ZCONST char Far UnzipUsageLine1[] = "\
-UnZip %d.%d%d%s of %s, by Info-ZIP.  UnReduce (c) 1989 by S. H. Smith.\n\
-Send bug reports using //www.info-zip.org/zip-bug.html; see README for details.\
-\n\n";
+UnZip %d.%d%d%s of %s, by Info-ZIP.  UnReduce (c) 1989 by S. H. Smith.\n\n";
 # endif /* ?COPYRIGHT_CLEAN */
 # define UnzipUsageLine1v       UnzipUsageLine1
 #endif /* ?VMS */
@@ -729,14 +721,8 @@ lowercase\n %-42s  -V  retain VMS version numbers\n%s";
 #endif /* ?UNICODE_SUPPORT */
 
 static ZCONST char Far UnzipUsageLine5[] = "\
-See \"unzip -hh\" or unzip.txt for more help.  Examples:\n\
-  unzip data1 -x joe   => extract all files except joe from zipfile data1.zip\n\
-%s\
-  unzip -fo foo %-6s => quietly replace existing %s if archive file newer\n";
+See \"unzip -hh\", unzip(1), or unzip.txt for more help.\n";
 #endif /* ?SFX */
-
-
-
 
 
 /*****************************/

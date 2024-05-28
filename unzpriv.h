@@ -3048,10 +3048,10 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
 #  define Ext_ASCII_TO_Native(string, hostnum, hostver, isuxatt, islochdr) \
     if (uO.no_conv_enc == FALSE) { \
     if (((hostnum) == FS_FAT_ && \
-         !(((islochdr) \
+         !(((islochdr) && \
            ((hostver) == 25 || (hostver) == 26 || (hostver) == 40))) || \
         (hostnum) == FS_HPFS_ || \
-        ((hostnum) == FS_NTFS_)) { \
+        ((hostnum) == FS_NTFS_))) { \
         _OEM_INTERN((string)); \
     }}
 #endif
