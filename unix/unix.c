@@ -345,15 +345,23 @@ char *do_wild(__G__ wildspec)
  * It's possible that a file in an archive could have one of these bits set
  * and, unknown to the person unzipping, could allow others to execute the
  * file as the user or group.  The new option -K bypasses this check.
+ *
+ * Additionally, this function is now used to make unzip obey the Unix
+ * umask by default. Again, this can be overridden with the -K flag.
  */
 
 static unsigned filtattr(__G__ perms)
     __GDEF
     unsigned perms;
 {
-    /* keep setuid/setgid/tacky perms? */
-    if (!uO.K_flag)
+    mode_t mask = umask ( 0 );
+    umask(mask);
+    
+    /* keep setuid/setgid/tacky perms? ignore umask? */
+    if (!uO.K_flag) {
         perms &= ~(S_ISUID | S_ISGID | S_ISVTX);
+	perms &= ~mask;		/* Obey the unix umask */
+    }
 
     return (0xffff & perms);
 } /* end function filtattr() */
