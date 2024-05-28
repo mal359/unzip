@@ -22,7 +22,7 @@ ARGUMENTS
               wildcard, each matching file is processed in an order determined
               by the operating system (or file system).  Only the filename can
               be a wildcard; the path itself cannot.  Wildcard expressions are
-              similar to those supported in commonly  used  Unix  shells  (sh,
+              similar to those supported in commonly  used  UNIX  shells  (sh,
               ksh, csh) and may contain:
 
               *      matches a sequence of 0 or more characters
@@ -41,7 +41,7 @@ ARGUMENTS
 
               (Be  sure  to quote any character that might otherwise be inter-
               preted or modified by the operating system,  particularly  under
-              Unix  and  VMS.)   If no matches are found, the specification is
+              UNIX  and  VMS.)   If no matches are found, the specification is
               assumed to be a literal filename; and if that  also  fails,  the
               suffix  .zip  is  appended.  Note that self-extracting ZIP files
               are supported, as with any other ZIP archive; just  specify  the
@@ -76,7 +76,7 @@ ARGUMENTS
               between the file(s) and the -x option.  The option and directory
               may be concatenated without any white space  between  them,  but
               note that this may cause normal shell behavior to be suppressed.
-              In particular, ``-d ~'' (tilde) is expanded  by  Unix  C  shells
+              In particular, ``-d ~'' (tilde) is expanded  by  UNIX  C  shells
               into  the  name  of  the  user's  home directory, but ``-d~'' is
               treated as a literal subdirectory ``~'' of  the  current  direc-
               tory.
@@ -92,7 +92,7 @@ OPTIONS
               See the appropriate manual  page  for  a  description  of  these
               options.
 
-       -A     [OS/2,  Unix  DLL] print extended help for the DLL's programming
+       -A     [OS/2,  UNIX  DLL] print extended help for the DLL's programming
               interface (API).
 
        -c     extract files to stdout/screen (``CRT'').  This option is  simi-
@@ -107,9 +107,9 @@ OPTIONS
               may be used to suppress the queries.  Note that under many oper-
               ating systems, the TZ (timezone) environment  variable  must  be
               set  correctly  in  order  for -f and -u to work properly (under
-              Unix the variable is usually set  automatically).   The  reasons
+              UNIX the variable is usually set  automatically).   The  reasons
               for this are somewhat subtle but have to do with the differences
-              between DOS-format file times (always local time) and  Unix-for-
+              between DOS-format file times (always local time) and  UNIX-for-
               mat  times  (always in GMT/UTC) and the necessity to compare the
               two.  A typical TZ value is ``PST8PDT'' (US  Pacific  time  with
               automatic  adjustment  for  Daylight  Savings  Time  or ``summer
@@ -185,7 +185,7 @@ MODIFIERS
               in zipinfo  listings,  rather  than  `b')  to  be  automatically
               extracted  as such, converting line endings, end-of-file charac-
               ters and the character set itself as necessary.   (For  example,
-              Unix  files  use line feeds (LFs) for end-of-line (EOL) and have
+              UNIX  files  use line feeds (LFs) for end-of-line (EOL) and have
               no end-of-file (EOF) marker; Macintoshes  use  carriage  returns
               (CRs) for EOLs; and most PC operating systems use CR+LF for EOLs
               and control-Z for EOF.  In  addition,  IBM  mainframes  and  the
@@ -244,7 +244,7 @@ MODIFIERS
               terns.  unzip's philosophy is ``you get what you ask for'' (this
               is also responsible for  the  -L/-U  change;  see  the  relevant
               options below).  Because some file systems are fully case-sensi-
-              tive (notably those under the Unix operating system) and because
+              tive (notably those under the UNIX operating system) and because
               both  ZIP  archives  and  unzip itself are portable across plat-
               forms, unzip's default behavior is to match  both  wildcard  and
               literal filenames case-sensitively.  That is, specifying ``make-
@@ -272,11 +272,12 @@ MODIFIERS
               told  to  suppress  restoration  of  timestamps  for directories
               explicitly created from Zip archive entries.  This  option  only
               applies to ports that support setting timestamps for directories
-              (currently ATheOS, BeOS, MacOS,  OS/2,  Unix,  VMS,  Win32,  for
-              other unzip ports, -D has no effect).  The duplicated option -DD
-              forces suppression of timestamp restoration  for  all  extracted
-              entries (files and directories).  This option results in setting
-              the timestamps for all extracted entries to the current time.
+              (currently ATheOS, BeOS,  Haiku,  Macintosh,  OS/2,  UNIX,  VMS, 
+	      Win32.    For  other  unzip  ports,  -D  has  no  effect).   The
+	      duplicated   option   -DD  forces   suppression   of   timestamp
+	      restoration  for  all extracted entries (files and directories).
+	      This option results in setting the timestamps for all  extracted
+	      entries to the current time.
 
               On VMS, the default setting for this option is  -D  for  consis-
               tency   with  the  behaviour  of  BACKUP:  file  timestamps  are
@@ -287,8 +288,8 @@ MODIFIERS
               items.  (Here, a single -D on the command line combines with the
               default -D to do what an explicit -DD does on other systems.)
 
-       -E     [MacOS  only]  display  contents  of  MacOS  extra  field during
-              restore operation.
+       -E     [Macintosh only]   display  contents  of  Macintosh  extra field
+              during restore operation.
 
        -F     [Acorn only] suppress removal of  NFS  filetype  extension  from
               stored filenames.
@@ -301,22 +302,22 @@ MODIFIERS
               have an appended NFS filetype extension, it is replaced  by  the
               info from the extra field.)
 
-       -i     [MacOS  only]  ignore  filenames  stored  in MacOS extra fields.
-              Instead, the most compatible filename stored in the generic part
-              of the entry's header is used.
+       -i     [Macintosh only]  ignore  filenames  stored  in  Macintosh extra
+              fields.  Instead, the most compatible  filename  stored  in  the 
+	      generic part of the entry's header is used.
 
        -j     junk paths.  The archive's directory structure is not recreated;
               all files are deposited in the extraction directory (by default,
               the current one).
 
-       -J     [BeOS   only]  junk  file  attributes.   The  file's  BeOS  file
-              attributes are not restored, just the file's data.
+       -J     [BeOS, Haiku only] junk file attributes.  The file's  BeOS/Haiku
+              file attributes are not restored, just the file's data.
 
-       -J     [MacOS only] ignore MacOS extra fields.  All Macintosh  specific
-              info  is  skipped.  Data-fork  and resource-fork are restored as
-              separate files.
+       -J     [Macintosh only] ignore  Macintosh extra fields.  All Macintosh-
+              specific info  is  skipped.  Data-fork  and  resource-fork  are 
+	      restored as separate files.
 
-       -K     [AtheOS,  BeOS,   Unix   only]   retain   SUID/SGID/Tacky   file
+       -K     [AtheOS, BeOS, Haiku, UNIX only]  retain   SUID/SGID/Tacky  file
               attributes.  Without this flag, these attribute bits are cleared
               for security reasons.
 
@@ -329,7 +330,7 @@ MODIFIERS
               (VMS, old MS-DOS FAT,  etc.)  may  be  stored  as  all-uppercase
               names;  this  can  be  ugly or inconvenient when extracting to a
               case-preserving file system such as OS/2 HPFS or  a  case-sensi-
-              tive  one  such  as  under  Unix.   By  default  unzip lists and
+              tive  one  such  as  under  UNIX.   By  default  unzip lists and
               extracts such filenames exactly  as  they're  stored  (excepting
               truncation,  conversion  of  unsupported characters, etc.); this
               option causes the names of all files from certain systems to  be
@@ -337,12 +338,12 @@ MODIFIERS
               every filename to lowercase, regardless of the originating  file
               system.
 
-       -M     pipe  all  output  through an internal pager similar to the Unix
+       -M     pipe  all  output  through an internal pager similar to the UNIX
               more(1) command.  At the end of a  screenful  of  output,  unzip
               pauses  with  a  ``--More--''  prompt; the next screenful may be
               viewed by pressing the Enter (Return)  key  or  the  space  bar.
               unzip  can  be terminated by pressing the ``q'' key and, on some
-              systems, the Enter/Return key.  Unlike Unix more(1), there is no
+              systems, the Enter/Return key.  Unlike UNIX more(1), there is no
               forward-searching  or  editing  capability.  Also, unzip doesn't
               notice if long lines wrap at the edge of the screen, effectively
               resulting  in  the printing of two or more lines and the likeli-
@@ -448,15 +449,15 @@ MODIFIERS
               allowing `/' as regular filename character, the -W option  would
               not work as expected on a wildcard zipfile specification.)
 
-       -X     [VMS,  Unix,  OS/2,  NT,  Tandem]  restore owner/protection info
+       -X     [VMS,  UNIX,  OS/2,  NT,  Tandem]  restore owner/protection info
               (UICs and ACL  entries)  under  VMS,  or  user  and  group  info
-              (UID/GID)  under Unix, or access control lists (ACLs) under cer-
+              (UID/GID)  under UNIX, or access control lists (ACLs) under cer-
               tain network-enabled versions of OS/2 (Warp Server with IBM  LAN
               Server/Requester 3.0 to 5.0; Warp Connect with IBM Peer 1.0), or
               security ACLs under Windows NT.  In most cases this will require
               special  system  privileges, and doubling the option (-XX) under
               NT instructs unzip to use privileges for extraction;  but  under
-              Unix,  for  example,  a  user  who belongs to several groups can
+              UNIX,  for  example,  a  user  who belongs to several groups can
               restore files owned by any of those groups, as long as the  user
               IDs  match  his  or her own.  Note that ordinary file attributes
               are always restored--this option applies only to optional, extra
@@ -501,15 +502,15 @@ MODIFIERS
               specifying   enough  ``../''  path  components  within  the  zip
               archive.  Use this option with extreme caution.
 
-       -^     [Unix only] allow control characters in names of  extracted  ZIP
-              archive  entries.   On Unix, a file name may contain any (8-bit)
+       -^     [UNIX only] allow control characters in names of  extracted  ZIP
+              archive  entries.   On UNIX, a file name may contain any (8-bit)
               character code with the two exception '/' (directory  delimiter)
               and  NUL  (0x00, the C string termination indicator), unless the
               specific file system has more restrictive  conventions.   Gener-
               ally,  this  allows  to  embed ASCII control characters (or even
               sophisticated control sequences) in  file  names,  at  least  on
-              'native'  Unix  file  systems.  However, it may be highly suspi-
-              cious to make use of  this  Unix  "feature".   Embedded  control
+              'native'  UNIX  file  systems.  However, it may be highly suspi-
+              cious to make use of  this  UNIX  "feature".   Embedded  control
               characters in file names might have nasty side effects when dis-
               played on screen by some listing code without sufficient filter-
               ing.   And,  for  ordinary  users, it may be difficult to handle
@@ -538,10 +539,10 @@ ENVIRONMENT OPTIONS
        sible,  only  reporting errors, one would use one of the following com-
        mands:
 
-         Unix Bourne shell:
+         UNIX Bourne shell:
               UNZIP=-qq; export UNZIP
 
-         Unix C shell:
+         UNIX C shell:
               setenv UNZIP -qq
 
          OS/2 or MS-DOS:
@@ -568,7 +569,7 @@ ENVIRONMENT OPTIONS
 
        (the  two  are equivalent).  This may seem awkward or confusing, but it
        is reasonably intuitive:  just ignore the  first  hyphen  and  go  from
-       there.  It is also consistent with the behavior of Unix nice(1).
+       there.  It is also consistent with the behavior of UNIX nice(1).
 
        As  suggested  by  the  examples  above, the default variable names are
        UNZIP_OPTS for VMS (where the symbol used to install unzip as a foreign
@@ -672,7 +673,7 @@ EXAMPLES
            unzip -tq \*.zip
 
        (The backslash before the  asterisk  is  only  required  if  the  shell
-       expands  wildcards,  as  in  Unix;  double  quotes could have been used
+       expands  wildcards,  as  in  UNIX;  double  quotes could have been used
        instead, as in the source examples below.)  To extract to standard out-
        put all members of letters.zip whose names end in .tex, auto-converting
        to the local end-of-line convention and piping the output into more(1):
@@ -689,7 +690,7 @@ EXAMPLES
 
            unzip source.zip "*.[fch]" Makefile -d /tmp
 
-       (the  double  quotes are necessary only in Unix and only if globbing is
+       (the  double  quotes are necessary only in UNIX and only if globbing is
        turned on).  To extract all FORTRAN and C source files,  regardless  of
        case  (e.g.,  both *.c and *.C, and any makefile, Makefile, MAKEFILE or
        similar):
@@ -809,7 +810,7 @@ DIAGNOSTICS
                      (If even one file is successfully processed, however, the
                      exit status is 1.)
 
-       VMS interprets standard Unix (or PC) return values as  other,  scarier-
+       VMS interprets standard UNIX (or PC) return values as  other,  scarier-
        looking things, so unzip instead maps them into VMS-style status codes.
        The current mapping is as  follows:    1  (success)  for  normal  exit,
        0x7fff0001    for   warning   errors,   and   (0x7fff000?   +   16*nor-
@@ -848,7 +849,7 @@ BUGS
        the output console.
 
        Dates,  times  and  permissions  of stored directories are not restored
-       except under Unix. (On Windows NT and successors,  timestamps  are  now
+       except under UNIX. (On Windows NT and successors,  timestamps  are  now
        restored.)
 
        [MS-DOS]  When  extracting or testing files from an archive on a defec-
@@ -861,9 +862,9 @@ BUGS
        not always reproducible).  This was apparently due either to a hardware
        bug  (cache  memory)  or  an operating system bug (improper handling of
        page faults?).  Since Ultrix has been abandoned  in  favor  of  Digital
-       Unix (OSF/1), this may not be an issue anymore.
+       UNIX (OSF/1), this may not be an issue anymore.
 
-       [Unix]  Unix  special  files  such as FIFO buffers (named pipes), block
+       [UNIX]  UNIX  special  files  such as FIFO buffers (named pipes), block
        devices and character devices are not restored even if they are somehow
        represented  in the zipfile, nor are hard-linked files relinked.  Basi-
        cally the only file types restored by unzip are regular files, directo-
@@ -879,7 +880,7 @@ BUGS
        overwrite just the directory entries (e.g., ``unzip -o foo */'').
 
        [VMS] When extracting to another directory, only the [.foo]  syntax  is
-       accepted  for  the  -d  option;  the simple Unix foo syntax is silently
+       accepted  for  the  -d  option;  the simple UNIX foo syntax is silently
        ignored (as is the less common VMS foo.dir syntax).
 
        [VMS] When the file being extracted already exists, unzip's query  only
@@ -901,11 +902,11 @@ URL
 AUTHORS
        The  primary  Info-ZIP authors (current semi-active members of the Zip-
        Bugs workgroup) are:  Ed Gordon (Zip, general maintenance, shared code,
-       Zip64,  Win32,  Unix,  Unicode);  Christian  Spieler (UnZip maintenance
+       Zip64,  Win32,  UNIX,  Unicode);  Christian  Spieler (UnZip maintenance
        coordination, VMS, MS-DOS, Win32, shared code, general  Zip  and  UnZip
        integration  and  optimization);  Onno van der Linden (Zip); Mike White
        (Win32, Windows GUI, Windows  DLLs);  Kai  Uwe  Rommel  (OS/2,  Win32);
-       Steven  M.  Schweda  (VMS, Unix, support of new features); Paul Kienitz
+       Steven  M.  Schweda  (VMS, UNIX, support of new features); Paul Kienitz
        (Amiga, Win32, Unicode); Chris Herborth (BeOS,  QNX,  Atari);  Jonathan
        Hudson (SMS/QDOS); Sergio Monesi (Acorn RISC OS); Harald Denker (Atari,
        MVS); John Bush (Solaris, Amiga); Hunter Goatley  (VMS,  Info-ZIP  Site
@@ -919,7 +920,7 @@ AUTHORS
        fUnZip).
 
        The author of the original unzip code upon which Info-ZIP's  was  based
-       is  Samuel H. Smith; Carl Mascott did the first Unix port; and David P.
+       is  Samuel H. Smith; Carl Mascott did the first UNIX port; and David P.
        Kirschbaum organized and led Info-ZIP in  its  early  days  with  Keith
        Petersen  hosting the original mailing list at WSMR-SimTel20.  The full
        list of contributors to UnZip has grown quite large;  please  refer  to

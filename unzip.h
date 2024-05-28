@@ -251,7 +251,7 @@ freely, subject to the above disclaimer and the following restrictions:
 #    define MODERN
 #  endif
 #endif
-#if (defined(CMS_MVS) || defined(__ATHEOS__) || defined(__BEOS__))
+#if (defined(CMS_MVS) || defined(__ATHEOS__) || defined(__BEOS__) || defined(__HAIKU__))
 /* || defined(CONVEX) ? */
 #  ifndef PROTO
 #    define PROTO
@@ -498,7 +498,7 @@ typedef struct _UzpOpts {
 #if (defined(__ATHEOS__) || defined(__BEOS__) || defined(MACOS) || defined(__HAIKU__))
     int J_flag;         /* -J: ignore AtheOS/BeOS/MacOS e. f. info (unzip) */
 #endif
-#if (defined(__ATHEOS__) || defined(__BEOS__) || defined(UNIX))
+#if (defined(__ATHEOS__) || defined(__BEOS__) || defined(__HAIKU__) || defined(UNIX))
     int K_flag;         /* -K: keep setuid/setgid/tacky permissions */
 #endif
     int lflag;          /* -12slmv: listing format (zipinfo) */
@@ -536,7 +536,7 @@ typedef struct _UzpOpts {
     int vflag;          /* -v: (verbosely) list directory */
     int V_flag;         /* -V: don't strip VMS version numbers */
     int W_flag;         /* -W: wildcard '*' won't match '/' dir separator */
-#if (defined (__ATHEOS__) || defined(__BEOS__) || defined(UNIX))
+#if (defined (__ATHEOS__) || defined(__BEOS__) || defined(__HAIKU__) || defined(UNIX))
     int X_flag;         /* -X: restore owner/protection or UID/GID or ACLs */
 #else
 #if (defined(TANDEM) || defined(THEOS))

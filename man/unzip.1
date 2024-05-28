@@ -293,8 +293,8 @@ in the Zip archive (and do not require privileges or impose a security risk).
 By specifying \fB\-D\fP, \fIunzip\fP is told to suppress restoration of
 timestamps for directories explicitly created from Zip archive entries.
 This option only applies to ports that support setting timestamps for
-directories (currently ATheOS, BeOS, MacOS, OS/2, UNIX, VMS, Win32, for other
-\fIunzip\fP ports, \fB\-D\fP has no effect).
+directories (currently ATheOS, BeOS, Haiku, Macintosh, OS/2, UNIX, VMS, Win32. 
+For other \fIunzip\fP ports, \fB\-D\fP has no effect).
 The duplicated option \fB\-DD\fP forces suppression of timestamp restoration
 for all extracted entries (files and directories).  This option results in
 setting the timestamps for all extracted entries to the current time.
@@ -309,7 +309,8 @@ with the default \fB\-D\fP to do what an explicit \fB\-DD\fP does on other
 systems.)
 .TP
 .B \-E
-[MacOS only] display contents of MacOS extra field during restore operation.
+[Macintosh only] display contents of Macintosh extra field during restore
+operation.
 .TP
 .B \-F
 [Acorn only] suppress removal of NFS filetype extension from stored filenames.
@@ -323,8 +324,8 @@ NFS filetype extension and append it to the names of the extracted files.
 extension, it is replaced by the info from the extra field.)
 .TP
 .B \-i
-[MacOS only] ignore filenames stored in MacOS extra fields.  Instead, the
-most compatible filename stored in the generic part of the entry's header
+[Macintosh only] ignore filenames stored in Macintosh extra fields.  Instead,
+the most compatible filename stored in the generic part of the entry's header
 is used.
 .IP \fB\-I\fP\ \fICHARSET\fP
 [UNIX only] Specify a character encoding for UNIX and other archives.
@@ -334,15 +335,15 @@ junk paths.  The archive's directory structure is not recreated; all files
 are deposited in the extraction directory (by default, the current one).
 .TP
 .B \-J
-[BeOS only] junk file attributes.  The file's BeOS file attributes are not
-restored, just the file's data.
+[BeOS, Haiku only] junk file attributes.  The file's BeOS/Haiku file attributes
+are not restored, just the file's data.
 .TP
 .B \-J
-[MacOS only] ignore MacOS extra fields.  All Macintosh specific info
+[Macintosh only] ignore Macintosh extra fields.  All Macintosh-specific info
 is skipped.  Data-fork and resource-fork are restored as separate files.
 .TP
 .B \-K
-[AtheOS, BeOS, UNIX only] retain SUID/SGID/Tacky file attributes.  Without
+[AtheOS, BeOS, Haiku UNIX only] retain SUID/SGID/Tacky file attributes.  Without
 this flag, these attribute bits are cleared for security reasons.
 .TP
 .B \-L

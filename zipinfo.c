@@ -171,7 +171,7 @@ static ZCONST char Far ZipfileStats[] =
 static ZCONST char Far OS_FAT[] = "MS-DOS, OS/2 or NT FAT";
 static ZCONST char Far OS_Amiga[] = "Amiga";
 static ZCONST char Far OS_VMS[] = "VMS";
-static ZCONST char Far OS_Unix[] = "Unix";
+static ZCONST char Far OS_Unix[] = "UNIX";
 static ZCONST char Far OS_VMCMS[] = "VM/CMS";
 static ZCONST char Far OS_AtariST[] = "Atari ST";
 static ZCONST char Far OS_HPFS[] = "OS/2 or NT HPFS";
@@ -188,7 +188,7 @@ static ZCONST char Far OS_AtheOS[] = "AtheOS";
 static ZCONST char Far OS_BeOS[] = "BeOS";
 static ZCONST char Far OS_Tandem[] = "Tandem NSK";
 static ZCONST char Far OS_Theos[] = "Theos";
-static ZCONST char Far OS_MacDarwin[] = "Mac OS/X (Darwin)";
+static ZCONST char Far OS_MacDarwin[] = "macOS (Darwin)";
 #ifdef OLD_THEOS_EXTRA
   static ZCONST char Far OS_TheosOld[] = "Theos (Old)";
 #endif /* OLD_THEOS_EXTRA */
@@ -280,7 +280,7 @@ static ZCONST char Far VMSFileAttributes[] =
 static ZCONST char Far AmigaFileAttributes[] =
   "  Amiga file attributes (%06o octal):           %s\n";
 static ZCONST char Far UnixFileAttributes[] =
-  "  Unix file attributes (%06o octal):            %s\n";
+  "  UNIX file attributes (%06o octal):            %s\n";
 static ZCONST char Far NonMSDOSFileAttributes[] =
   "  non-MSDOS external file attributes:             %06lX hex\n";
 static ZCONST char Far MSDOSFileAttributes[] =
@@ -290,7 +290,7 @@ static ZCONST char Far MSDOSFileAttributesRO[] =
 static ZCONST char Far MSDOSFileAttributesAlpha[] =
   "  MS-DOS file attributes (%02X hex):                %s%s%s%s%s%s%s%s\n";
 static ZCONST char Far TheosFileAttributes[] =
-  "  Theos file attributes (%04X hex):               %s\n";
+  "  THEOS file attributes (%04X hex):               %s\n";
 
 static ZCONST char Far TheosFTypLib[] = "Library     ";
 static ZCONST char Far TheosFTypDir[] = "Directory   ";
@@ -315,11 +315,11 @@ static ZCONST char Far efAV[] = "PKWARE AV";
 static ZCONST char Far efOS2[] = "OS/2";
 static ZCONST char Far efPKVMS[] = "PKWARE VMS";
 static ZCONST char Far efPKWin32[] = "PKWARE Win32";
-static ZCONST char Far efPKUnix[] = "PKWARE Unix";
+static ZCONST char Far efPKUnix[] = "PKWARE UNIX";
 static ZCONST char Far efIZVMS[] = "Info-ZIP VMS";
-static ZCONST char Far efIZUnix[] = "old Info-ZIP Unix/OS2/NT";
-static ZCONST char Far efIZUnix2[] = "Unix UID/GID (16-bit)";
-static ZCONST char Far efIZUnix3[] = "Unix UID/GID (any size)";
+static ZCONST char Far efIZUnix[] = "old Info-ZIP UNIX/OS2/NT";
+static ZCONST char Far efIZUnix2[] = "UNIX UID/GID (16-bit)";
+static ZCONST char Far efIZUnix3[] = "UNIX UID/GID (any size)";
 static ZCONST char Far efTime[] = "universal time";
 static ZCONST char Far efU8Path[] = "UTF8 path name";
 static ZCONST char Far efU8Commnt[] = "UTF8 entry comment";
@@ -338,9 +338,9 @@ static ZCONST char Far efQDOS[] = "SMS/QDOS";
 static ZCONST char Far efAOSVS[] = "AOS/VS";
 static ZCONST char Far efSpark[] = "Acorn SparkFS";
 static ZCONST char Far efMD5[] = "Fred Kantor MD5";
-static ZCONST char Far efASiUnix[] = "ASi Unix";
+static ZCONST char Far efASiUnix[] = "ASi UNIX";
 static ZCONST char Far efTandem[] = "Tandem NSK";
-static ZCONST char Far efTheos[] = "Theos";
+static ZCONST char Far efTheos[] = "THEOS";
 static ZCONST char Far efUnknown[] = "unknown";
 
 static ZCONST char Far OS2EAs[] = ".\n\
@@ -417,7 +417,7 @@ static ZCONST char Far lExtraFieldType[] = "\n\
   There %s a local extra field with ID 0x%04x (%s) and\n\
   %u data bytes (%s).\n";
 static ZCONST char Far efIZuid[] =
-  "GMT modification/access times and Unix UID/GID";
+  "GMT modification/access times and UNIX UID/GID";
 static ZCONST char Far efIZnouid[] = "GMT modification/access times only";
 
 
