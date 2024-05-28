@@ -7,8 +7,10 @@
 .\"
 .\" funzip.1 by Greg Roelofs and others.
 .\"
+.TH FUNZIP 1L "20 April 2009 (v3.95)" "Info-ZIP"
 .\" =========================================================================
 .\" define .EX/.EE (for multiline user-command examples; normal Courier font)
+.\" must be after the "TH" macro, as the same are also defined in "an-ext.tmac"
 .de EX
 .in +4n
 .nf
@@ -20,7 +22,6 @@
 .in -4n
 ..
 .\" =========================================================================
-.TH FUNZIP 1L "20 April 2009 (v3.95)" "Info-ZIP"
 .SH NAME
 funzip \- filter for extracting from a ZIP archive in a pipe
 .PD
@@ -32,7 +33,7 @@ funzip \- filter for extracting from a ZIP archive in a pipe
 Optional password to be used if ZIP archive is encrypted.  Decryption
 may not be supported at some sites.  See DESCRIPTION for more details.
 .IP [\fIinput[.zip|.gz]\fP]
-Optional input archive file specification. See DESCRIPTION for details.
+Optional input archive file specification.  See DESCRIPTION for details.
 .PD
 .\" =========================================================================
 .SH DESCRIPTION
@@ -51,7 +52,7 @@ A password for encrypted zip files can be specified
 on the command line (preceding the file name, if any) by prefixing the
 password with a dash.  Note that this constitutes a security risk on many
 systems; currently running processes are often visible via simple commands
-(e.g., \fIps\fP(1) under Unix), and command-line histories can be read.
+(e.g., \fIps\fP(1) under UNIX), and command-line histories can be read.
 If the first entry of the zip file is encrypted and
 no password is specified on the command line, then the user is prompted for
 a password and the password is not echoed on the console.

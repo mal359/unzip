@@ -22,7 +22,10 @@
 .ft
 .fi
 ..
+.\" =========================================================================
+.TH ZIPINFO 1L "20 April 2009 (v3.0)" "Info-ZIP"
 .\" define .EX/.EE (for multiline user-command examples; normal Courier font)
+.\" must be after ".TH" as a groff macro file defines the same macros
 .de EX
 .in +4n
 .nf
@@ -33,8 +36,6 @@
 .fi
 .in -4n
 ..
-.\" =========================================================================
-.TH ZIPINFO 1L "20 April 2009 (v3.0)" "Info-ZIP"
 .SH NAME
 zipinfo \- list detailed information about a ZIP archive
 .PD
@@ -54,11 +55,11 @@ system or file system of compressing program, and the like.  The default
 behavior (with no options) is
 to list single-line entries for each file in the archive, with header and
 trailer lines providing summary information for the entire archive.  The
-format is a cross between Unix ``ls \-l'' and ``unzip \-v''
+format is a cross between UNIX ``ls \-l'' and ``unzip \-v''
 output.  See
 .B "DETAILED DESCRIPTION"
 below.  Note that \fIzipinfo\fP is the same program as \fIunzip\fP (under
-Unix, a link to it); on some systems, however, \fIzipinfo\fP support may
+UNIX, a link to it); on some systems, however, \fIzipinfo\fP support may
 have been omitted when \fIunzip\fP was compiled.
 .PD
 .\" =========================================================================
@@ -68,7 +69,7 @@ have been omitted when \fIunzip\fP was compiled.
 Path of the ZIP archive(s).  If the file specification is a wildcard,
 each matching file is processed in an order determined by the operating
 system (or file system).  Only the filename can be a wildcard; the path
-itself cannot.  Wildcard expressions are similar to Unix \fIegrep\fP(1)
+itself cannot.  Wildcard expressions are similar to UNIX \fIegrep\fP(1)
 (regular) expressions and may contain:
 .RS
 .IP *
@@ -85,7 +86,7 @@ verbatim left bracket, the three-character sequence ``[[]'' has to be used.
 .RE
 .IP
 (Be sure to quote any character that might otherwise be interpreted or
-modified by the operating system, particularly under Unix and VMS.)  If no
+modified by the operating system, particularly under UNIX and VMS.)  If no
 matches are found, the specification is assumed to be a literal filename;
 and if that also fails, the suffix .zip is appended.  Note that
 self-extracting ZIP files are supported, as with any other ZIP archive;
@@ -105,7 +106,7 @@ An optional list of archive members to be excluded from processing.
 .B \-1
 list filenames only, one per line.  This option excludes all others; headers,
 trailers and zipfile comments are never printed.  It is intended for use in
-Unix shell scripts.
+UNIX shell scripts.
 .TP
 .B \-2
 list filenames only, one per line, but allow headers (\fB\-h\fP), trailers
@@ -113,19 +114,19 @@ list filenames only, one per line, but allow headers (\fB\-h\fP), trailers
 useful in cases where the stored filenames are particularly long.
 .TP
 .B \-s
-list zipfile info in short Unix ``ls \-l'' format.  This is the default
+list zipfile info in short UNIX ``ls \-l'' format.  This is the default
 behavior; see \fB\-m option below.
 .TP
 .B \-S
 suppress the conversion of file name encodings.
 .TP
 .B \-m
-list zipfile info in medium Unix ``ls \-l'' format.  Identical to the
+list zipfile info in medium UNIX ``ls \-l'' format.  Identical to the
 \fB\-s\fP output, except that the compression factor, expressed as a
 percentage, is also listed.
 .TP
 .B \-l
-list zipfile info in long Unix ``ls \-l'' format.  As with \fB\-m\fP
+list zipfile info in long UNIX ``ls \-l'' format.  As with \fB\-m\fP
 except that the compressed size (in bytes) is printed instead of the
 compression ratio.
 .TP
@@ -137,12 +138,12 @@ list header line.  The archive name, actual size (in bytes) and total number
 of files is printed.
 .TP
 .B \-M
-pipe all output through an internal pager similar to the Unix \fImore\fP(1)
+pipe all output through an internal pager similar to the UNIX \fImore\fP(1)
 command.  At the end of a screenful of output, \fIzipinfo\fP pauses with a
 ``\-\-More\-\-'' prompt; the next screenful may be viewed by pressing the
 Enter (Return) key or the space bar.  \fIzipinfo\fP can be terminated by
 pressing the ``q'' key and, on some systems, the Enter/Return key.  Unlike
-Unix \fImore\fP(1), there is no forward-searching or editing capability.
+UNIX \fImore\fP(1), there is no forward-searching or editing capability.
 Also, \fIzipinfo\fP doesn't notice if long lines wrap at the edge of the
 screen, effectively resulting in the printing of two or more lines and the
 likelihood that some text will scroll off the top of the screen before being
@@ -154,7 +155,7 @@ list totals for files listed or for all files.  The number of files listed,
 their uncompressed and compressed total sizes , and their overall compression
 factor is printed; or, if only the totals line is being printed, the values
 for the entire archive are given.  The compressed total size does not include
-the 12 additional header bytes of each encrypted entry. Note that the total
+the 12 additional header bytes of each encrypted entry.  Note that the total
 compressed (data) size will never match the actual zipfile size, since the
 latter includes all of the internal zipfile headers in addition to the
 compressed data.
@@ -186,7 +187,7 @@ include the archive comment (if any) in the listing.
 .SH "DETAILED DESCRIPTION"
 .I zipinfo
 has a number of modes, and its behavior can be rather difficult to fathom
-if one isn't familiar with Unix \fIls\fP(1) (or even if one is).  The default
+if one isn't familiar with UNIX \fIls\fP(1) (or even if one is).  The default
 behavior is to list files in the following format:
 .PP
 .X "-rw-rws---  1.9 unx    2802 t- defX 11-Aug-91 13:48 perms.2660"
@@ -198,8 +199,8 @@ was zipped with a stored directory name, that is also displayed as part
 of the filename.
 .PP
 The second and third fields indicate that the file was zipped under
-Unix with version 1.9 of \fIzip\fP.  Since it comes from Unix, the file
-permissions at the beginning of the line are printed in Unix format.
+UNIX with version 1.9 of \fIzip\fP.  Since it comes from UNIX, the file
+permissions at the beginning of the line are printed in UNIX format.
 The uncompressed file-size (2802 in this example) is the fourth field.
 .PP
 The fifth field consists of two characters, either of which may take
@@ -234,7 +235,7 @@ denoted as follows:
 .X "-r--ahs     1.1 fat    4096 b- i4:2 14-Jul-91 12:58 EA DATA. SF"
 .X "--w-------  1.0 mac   17357 bx i8:2  4-May-92 04:02 unzip.macr"
 .PP
-File attributes in the first two cases are indicated in a Unix-like format,
+File attributes in the first two cases are indicated in a UNIX-like format,
 where the seven subfields indicate whether the file:  (1) is a directory,
 (2) is readable (always true), (3) is writable, (4) is executable (guessed
 on the basis of the extension--\fI.exe\fP, \fI.com\fP, \fI.bat\fP, \fI.cmd\fP
@@ -278,7 +279,7 @@ format:
 .PP
 Note that because of limitations in the MS-DOS format used to store file
 times, the seconds field is always rounded to the nearest even second.
-For Unix files this is expected to change in the next major releases of
+For UNIX files this is expected to change in the next major releases of
 \fIzip\fP(1L) and \fIunzip\fP.
 .PP
 In addition to individual file information, a default zipfile listing
@@ -297,7 +298,7 @@ total number of files; the trailer gives the number of files listed,
 their total uncompressed size, and their total compressed size (not
 including any of \fIzip\fP's internal overhead).  If, however, one or
 more \fIfile(s)\fP are provided, the header and trailer lines are
-not listed.  This behavior is also similar to that of Unix's ``ls \-l'';
+not listed.  This behavior is also similar to that of UNIX's ``ls \-l'';
 it may be overridden by specifying the \fB\-h\fP and \fB\-t\fP options
 explicitly.
 In such a case the listing format must also be specified explicitly,
@@ -329,7 +330,7 @@ encrypted entries.
 Modifying \fIzipinfo\fP's default behavior via options placed in
 an environment variable can be a bit complicated to explain, due to
 \fIzipinfo\fP's attempts to handle various defaults in an intuitive,
-yet Unix-like, manner.  (Try not to laugh.)  Nevertheless, there is some
+yet UNIX-like, manner.  (Try not to laugh.)  Nevertheless, there is some
 underlying logic.  In brief,
 there are three ``priority levels'' of options:  the default options;
 environment options, which can override or add to the defaults; and
@@ -342,10 +343,10 @@ are specified).
 A user who prefers the long-listing format (\fB\-l\fP) can make use of the
 \fIzipinfo\fP's environment variable to change this default:
 .TP
-Unix Bourne shell:
+UNIX Bourne shell:
 \f(CW\&ZIPINFO=\-l; export ZIPINFO\fP
 .TP
-Unix C shell:
+UNIX C shell:
 \f(CW\&setenv ZIPINFO \-l\fP
 .TP
 OS/2 or MS-DOS:
@@ -353,7 +354,6 @@ OS/2 or MS-DOS:
 .TP
 VMS (quotes for \fIlowercase\fP):
 \f(CW\&define ZIPINFO_OPTS "\-l"\fP
-.EE
 .PP
 If, in addition, the user dislikes the trailer line, \fIzipinfo\fP's
 concept of ``negative options'' may be used to override the default
@@ -363,7 +363,7 @@ in this example.  The first hyphen is the regular switch character, but the
 one before the `t' is a minus sign.  The dual use of hyphens may seem a
 little awkward, but it's reasonably intuitive nonetheless:  simply ignore
 the first hyphen and go from there.  It is also consistent with the behavior
-of the Unix command \fInice\fP(1).
+of the UNIX command \fInice\fP(1).
 .PP
 As suggested above, the default variable names are ZIPINFO_OPTS for VMS
 (where the symbol used to install \fIzipinfo\fP as a foreign command
@@ -401,7 +401,7 @@ zipinfo storage \e*
 .EE
 .PP
 (where the backslash is required only if the shell would otherwise expand
-the `*' wildcard, as in Unix when globbing is turned on--double quotes around
+the `*' wildcard, as in UNIX when globbing is turned on--double quotes around
 the asterisk would have worked as well).  To turn off the totals line by
 default, use the environment variable (C shell is assumed here):
 .PP
@@ -453,7 +453,7 @@ zipinfo \-mt storage "*.[ch]" Mak\e*
 .PP
 To get maximal information about the ZIP archive, use the verbose
 option.  It is usually wise to pipe the output into a filter such as
-Unix \fImore\fP(1) if the operating system allows it:
+UNIX \fImore\fP(1) if the operating system allows it:
 .PP
 .EX
 zipinfo \-v storage | more
@@ -461,10 +461,10 @@ zipinfo \-v storage | more
 .PP
 Finally, to see the most recently modified files in the archive, use
 the \fB\-T\fP option in conjunction with an external sorting utility
-such as Unix \fIsort\fP(1) (and \fIsed\fP(1) as well, in this example):
+such as UNIX \fIsort\fP(1) (and \fIsed\fP(1) as well, in this example):
 .PP
 .EX
-zipinfo \-T storage | sort -nr -k 7 | sed 15q
+zipinfo \-T storage | sort \-nr \-k 7 | sed 15q
 .EE
 .PP
 The \fB\-nr\fP option to \fIsort\fP(1) tells it to sort numerically
@@ -473,8 +473,8 @@ tells it to sort on the seventh field.  This
 assumes the default short-listing format; if \fB\-m\fP or \fB\-l\fP is
 used, the proper \fIsort\fP(1) option would be \fB\-k\ 8\fP.
 Older versions of \fIsort\fP(1) do not support the \fB\-k\fP option,
-but you can use the traditional \fB\+\fP option instead, e.g.,
-\fB\+6\fP instead of \fB\-k\ 7\fP.  The \fIsed\fP(1)
+but you can use the traditional \fB+\fP option instead, e.g.,
+\fB+6\fP instead of \fB\-k\ 7\fP.  The \fIsed\fP(1)
 command filters out all but the first 15 lines of the listing.  Future
 releases of \fIzipinfo\fP may incorporate date/time and filename sorting
 as built-in options.
@@ -485,7 +485,7 @@ The author finds it convenient to define an alias \fIii\fP for \fIzipinfo\fP
 on systems that allow aliases (or, on other systems, copy/rename the
 executable, create a link or create a command file with the name \fIii\fP).
 The \fIii\fP usage parallels the common \fIll\fP alias for long listings in
-Unix, and the similarity between the outputs of the two commands was
+UNIX, and the similarity between the outputs of the two commands was
 intentional.
 .PD
 .\" =========================================================================
