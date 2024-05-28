@@ -2169,9 +2169,15 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 /* translate the text coded in the entry's host-dependent
                    "extended ASCII" charset into the compiler's (system's)
                    internal text code page */
-                Ext_ASCII_TO_Native((char *)G.outbuf, G.pInfo->hostnum,
-                                    G.pInfo->hostver, G.pInfo->HasUxAtt,
-                                    FALSE);
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+                if (!G.pInfo->GPFIsUTF8 || !G.native_is_utf8) {
+#endif
+                        Ext_ASCII_TO_Native((char *)G.outbuf, G.pInfo->hostnum,
+                                            G.pInfo->hostver, G.pInfo->HasUxAtt,
+                                            FALSE);
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+                }
+#endif
 #ifdef WINDLL
                 /* translate to ANSI (RTL internal codepage may be OEM) */
                 INTERN_TO_ISO((char *)G.outbuf, (char *)G.outbuf);
@@ -2283,8 +2289,14 @@ int do_string(__G__ length, option)   /* return PK-type error code */
 
         /* translate the Zip entry filename coded in host-dependent "extended
            ASCII" into the compiler's (system's) internal text code page */
-        Ext_ASCII_TO_Native(G.filename, G.pInfo->hostnum, G.pInfo->hostver,
-                            G.pInfo->HasUxAtt, (option == DS_FN_L));
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+        if (!G.pInfo->GPFIsUTF8 || !G.native_is_utf8) {
+#endif
+            Ext_ASCII_TO_Native(G.filename, G.pInfo->hostnum, G.pInfo->hostver,
+                                G.pInfo->HasUxAtt, (option == DS_FN_L));
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+        }
+#endif
 
         if (G.pInfo->lcflag)      /* replace with lowercase filename */
             STRLOWER(G.filename, G.filename);

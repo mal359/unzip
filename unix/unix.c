@@ -32,6 +32,7 @@
 
 #include <iconv.h>
 #include <langinfo.h>
+#include <stdbool.h>
 
 #ifdef SCO_XENIX
 #  define SYSNDIR
@@ -2295,13 +2296,71 @@ void init_conversion_charsets()
     if(*OEM_CP == '\0') {
     	local_charset = nl_langinfo(CODESET);
     	for(i = 0; i < sizeof(dos_charset_map)/sizeof(CHARSET_MAP); i++)
-    		if(!strcasecmp(local_charset, dos_charset_map[i].local_charset)) {
-    			strncpy(OEM_CP, dos_charset_map[i].archive_charset,
-    					MAX_CP_NAME - 1);
+    	    if(!strcasecmp(local_charset, dos_charset_map[i].local_charset)) {
+		    strncpy(OEM_CP, dos_charset_map[i].archive_charset,
+    			MAX_CP_NAME - 1);
+		OEM_CP[MAX_CP_NAME - 1] = '\0';
+    		break;
+    	    }
+    }
+    /* Still not detected? Try to detect by system locale. */
+    if(*OEM_CP == '\0') {
 
-			OEM_CP[MAX_CP_NAME - 1] = '\0';
-    			break;
-    		}
+      const char *lcToOemTable[] = {
+        "af_ZA", "CP850", "ar_SA", "CP720", "ar_LB", "CP720", "ar_EG", "CP720",
+        "ar_DZ", "CP720", "ar_BH", "CP720", "ar_IQ", "CP720", "ar_JO", "CP720",
+        "ar_KW", "CP720", "ar_LY", "CP720", "ar_MA", "CP720", "ar_OM", "CP720",
+        "ar_QA", "CP720", "ar_SY", "CP720", "ar_TN", "CP720", "ar_AE", "CP720",
+        "ar_YE", "CP720", "ast_ES", "CP850", "az_AZ", "CP866", "az_AZ", "CP857",
+        "be_BY", "CP866", "bg_BG", "CP866", "br_FR", "CP850", "ca_ES", "CP850",
+        "zh_CN", "CP936", "zh_TW", "CP950", "kw_GB", "CP850", "cs_CZ", "CP852",
+        "cy_GB", "CP850", "da_DK", "CP850", "de_AT", "CP850", "de_LI", "CP850",
+        "de_LU", "CP850", "de_CH", "CP850", "de_DE", "CP850", "el_GR", "CP737",
+        "en_AU", "CP850", "en_CA", "CP850", "en_GB", "CP850", "en_IE", "CP850",
+        "en_JM", "CP850", "en_BZ", "CP850", "en_PH", "CP437", "en_ZA", "CP437",
+        "en_TT", "CP850", "en_US", "CP437", "en_ZW", "CP437", "en_NZ", "CP850",
+        "es_PA", "CP850", "es_BO", "CP850", "es_CR", "CP850", "es_DO", "CP850",
+        "es_SV", "CP850", "es_EC", "CP850", "es_GT", "CP850", "es_HN", "CP850",
+        "es_NI", "CP850", "es_CL", "CP850", "es_MX", "CP850", "es_ES", "CP850",
+        "es_CO", "CP850", "es_ES", "CP850", "es_PE", "CP850", "es_AR", "CP850",
+        "es_PR", "CP850", "es_VE", "CP850", "es_UY", "CP850", "es_PY", "CP850",
+        "et_EE", "CP775", "eu_ES", "CP850", "fa_IR", "CP720", "fi_FI", "CP850",
+        "fo_FO", "CP850", "fr_FR", "CP850", "fr_BE", "CP850", "fr_CA", "CP850",
+        "fr_LU", "CP850", "fr_MC", "CP850", "fr_CH", "CP850", "ga_IE", "CP437",
+        "gd_GB", "CP850", "gv_IM", "CP850", "gl_ES", "CP850", "he_IL", "CP862",
+        "hr_HR", "CP852", "hu_HU", "CP852", "id_ID", "CP850", "is_IS", "CP850",
+        "it_IT", "CP850", "it_CH", "CP850", "iv_IV", "CP437", "ja_JP", "CP932",
+        "kk_KZ", "CP866", "ko_KR", "CP949", "ky_KG", "CP866", "lt_LT", "CP775",
+        "lv_LV", "CP775", "mk_MK", "CP866", "mn_MN", "CP866", "ms_BN", "CP850",
+        "ms_MY", "CP850", "nl_BE", "CP850", "nl_NL", "CP850", "nl_SR", "CP850",
+        "nn_NO", "CP850", "nb_NO", "CP850", "pl_PL", "CP852", "pt_BR", "CP850",
+        "pt_PT", "CP850", "rm_CH", "CP850", "ro_RO", "CP852", "ru_RU", "CP866",
+        "sk_SK", "CP852", "sl_SI", "CP852", "sq_AL", "CP852", "sr_RS", "CP855",
+        "sr_RS", "CP852", "sv_SE", "CP850", "sv_FI", "CP850", "sw_KE", "CP437",
+        "th_TH", "CP874", "tr_TR", "CP857", "tt_RU", "CP866", "uk_UA", "CP866",
+        "ur_PK", "CP720", "uz_UZ", "CP866", "uz_UZ", "CP857", "vi_VN", "CP1258",
+        "wa_BE", "CP850", "zh_HK", "CP950", "zh_SG", "CP936"};
+
+      int tableLen = sizeof(lcToOemTable) / sizeof(lcToOemTable[0]);
+      int lcLen = 0, i;
+
+      /* Detect required code page name from current locale. */
+      char *lc = setlocale(LC_CTYPE, "");
+
+      if (lc && lc[0]) {
+        // Compare up to the dot, if it exists, e.g. en_US.UTF-8
+        for (lcLen = 0; lc[lcLen] != '.' && lc[lcLen] != ':' && lc[lcLen] != '\0'; ++lcLen);
+
+        for (i = 0; i < tableLen; i += 2)
+
+          if (strncmp(lc, (lcToOemTable[i]), lcLen) == 0) {
+
+            strncpy(OEM_CP, lcToOemTable[i + 1],
+              sizeof(OEM_CP));
+
+            break;
+          }
+      }
     }
 }
 

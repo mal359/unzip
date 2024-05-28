@@ -325,6 +325,8 @@ extension, it is replaced by the info from the extra field.)
 [MacOS only] ignore filenames stored in MacOS extra fields. Instead, the
 most compatible filename stored in the generic part of the entry's header
 is used.
+.IP \fB\-I\fP\ \fICHARSET\fP
+[UNIX only] Specify a character encoding for UNIX and other archives.
 .TP
 .B \-j
 junk paths.  The archive's directory structure is not recreated; all files
@@ -386,6 +388,8 @@ of \fIzip\fP(1L), which stores filenotes as comments.
 overwrite existing files without prompting.  This is a dangerous option, so
 use it with care.  (It is often used with \fB\-f\fP, however, and is the only
 way to overwrite directory EAs under OS/2.)
+.IP \fB\-O\fP\ \fICHARSET\fP
+[UNIX only] Specify a character encoding for DOS, Windows and OS/2 archives.
 .IP \fB\-P\fP\ \fIpassword\fP
 use \fIpassword\fP to decrypt encrypted zipfile entries (if any).  \fBTHIS IS
 INSECURE!\fP  Many multi-user operating systems provide ways for any user to

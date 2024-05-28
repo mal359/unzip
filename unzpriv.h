@@ -3033,17 +3033,26 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
  *
  * All other ports are assumed to code zip entry filenames in ISO 8859-1.
  */
+ 
+/* 2024-05-25 Removed "|| (isuxatt)": actually we know nothing
+ * about local system's codepage of PKZIP 2.51 UNIX users.
+ * Also removed "_ISO_INTERN((string)); \":
+ * Windows ANSI is not always 1252, also standard defines default
+ * charset as CP437, not ISO 8859-1. But in fact most of packers
+ * just used local system's charset, so without any charset translation
+ * we will at least make such archives processed correctly
+ * on the same system - Ivan Sorokin <unxed@mail.ru>
+ */
+
 #ifndef Ext_ASCII_TO_Native
 #  define Ext_ASCII_TO_Native(string, hostnum, hostver, isuxatt, islochdr) \
     if (uO.no_conv_enc == FALSE) { \
     if (((hostnum) == FS_FAT_ && \
-         !(((islochdr) || (isuxatt)) && \
+         !(((islochdr) \
            ((hostver) == 25 || (hostver) == 26 || (hostver) == 40))) || \
         (hostnum) == FS_HPFS_ || \
-        ((hostnum) == FS_NTFS_ /* && (hostver) == 50 */ )) { \
+        ((hostnum) == FS_NTFS_)) { \
         _OEM_INTERN((string)); \
-    } else { \
-        _ISO_INTERN((string)); \
     }}
 #endif
 
