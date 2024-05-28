@@ -1294,7 +1294,7 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
     fprintf(stdout,"\nnumber of disks (ECR) %u, (ECLOC64) %lu\n",
             G.ecrec.number_this_disk, ecloc64_total_disks); fflush(stdout);
 #endif
-    if ((G.ecrec.number_this_disk != 0xFFFF) &&
+    if ((G.ecrec.number_this_disk != 0xFFFF) && ecloc64_total_disks &&
         (G.ecrec.number_this_disk != ecloc64_total_disks - 1) &&
         (ecloc64_total_disks != 0)) {
       /* Note: For some unknown reason, the developers at PKWARE decided to
@@ -2084,10 +2084,14 @@ int getUnicodeData(__G__ ef_buf, ef_len)
           G.unipath_checksum = makelong(offset + ef_buf);
           offset += 4;
 
+          if (!G.filename_full) {
+            /* Check if we have a unicode extra section but no filename set */
+            return PK_ERR;
+          }
+
           /*
            * Compute 32-bit crc
            */
-
           chksum = crc32(chksum, (uch *)(G.filename_full),
                          strlen(G.filename_full));
 
