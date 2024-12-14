@@ -714,6 +714,17 @@ modifiers:\n\
   -j  junk paths (do not make directories)   -aa treat ALL files as text\n\
   -C  match filenames case-insensitively     -L  make (some) names \
 lowercase\n %-42s  -V  retain VMS version numbers\n%s";
+#elif (defined UNIX)
+static ZCONST char Far UnzipUsageLine4[] = "\
+modifiers:\n\
+  -n  never overwrite existing files         -q  quiet mode (-qq => quieter)\n\
+  -o  overwrite files WITHOUT prompting      -a  auto-convert any text files\n\
+  -j  junk paths (do not make directories)   -aa treat ALL files as text\n\
+  -U  use escapes for all non-ASCII Unicode  -UU ignore any Unicode fields\n\
+  -C  match filenames case-insensitively     -L  make (some) names \
+lowercase\n %-42s  -V  retain VMS version numbers\n%s\
+  -O  CHARSET  specify a character encoding for DOS, Windows and OS/2 archives\n\
+  -I  CHARSET  specify a character encoding for UNIX and other archives\n\n";
 #else /* !VMS */
 static ZCONST char Far UnzipUsageLine4[] = "\
 modifiers:\n\
@@ -831,6 +842,10 @@ int unzip(__G__ argc, argv)
     G.unipath_filename = NULL;
 #endif /* UNICODE_SUPPORT */
 
+
+#ifdef UNIX
+    init_conversion_charsets();
+#endif
 
 #ifdef UNIX
     init_conversion_charsets();

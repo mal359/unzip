@@ -439,6 +439,10 @@ static ZCONST char Far DecimalTime[] = "%04u%02u%02u.%02u%02u%02u";
 
 
 
+#ifdef UNIX
+    extern char OEM_CP[MAX_CP_NAME];
+    extern char ISO_CP[MAX_CP_NAME];
+#endif
 
 #ifndef WINDLL
 
