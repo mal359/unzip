@@ -327,11 +327,21 @@ static ZCONST char Far ZipInfoUsageLine2[] = "\nmain\
   -2  just filenames but allow -h/-t/-z  -l  long Unix \"ls -l\" format\n\
                                          -v  verbose, multi-page format\n";
 
+#ifndef UNIX
 static ZCONST char Far ZipInfoUsageLine3[] = "miscellaneous options:\n\
   -h  print header line       -t  print totals for listed files or for all\n\
-  -z  print zipfile comment   -T  print file times in sortable decimal format\
-\n  -C  be case-insensitive   %s\
+  -z  print zipfile comment   -T  print file times in sortable decimal format\n\
+  -C  be case-insensitive     %s\
   -x  exclude filenames that follow from listing\n";
+#else /* UNIX */
+static ZCONST char Far ZipInfoUsageLine3[] = "miscellaneous options:\n\
+  -h  print header line       -t  print totals for listed files or for all\n\
+  -z  print zipfile comment   -T  print file times in sortable decimal format\n\
+  -C  be case-insensitive   %s\
+  -x  exclude filenames that follow from listing\n\
+  -O CHARSET  specify a character encoding for DOS, Windows and OS/2 archives\n\
+  -I CHARSET  specify a character encoding for UNIX and other archives\n";
+#endif /* !UNIX */
 #ifdef MORE
    static ZCONST char Far ZipInfoUsageLine4[] =
      "  -M  page output through built-in \"more\"\n";
@@ -358,7 +368,7 @@ static ZCONST char Far ZipInfoUsageLine3[] = "miscellaneous options:\n\
 #  else
      static ZCONST char Far UnzipSFXBanner[] =
 #  endif
-     "UnZipSFX %d.%d%d%s of %s, by Info-ZIP (http://www.info-zip.org).\n";
+     "UnZipSFX %d.%d%d%s of %s, by Info-ZIP.\n";
 #  ifdef SFX_EXDIR
      static ZCONST char Far UnzipSFXOpts[] =
     "Valid options are -tfupcz and -d <exdir>; modifiers are -abjnoqCL%sV%s.\n";
@@ -570,22 +580,17 @@ Send bug reports using //www.info-zip.org/zip-bug.html; see README for details.\
 #else /* !VMS */
 # ifdef COPYRIGHT_CLEAN
    static ZCONST char Far UnzipUsageLine1[] = "\
-UnZip %d.%d%d%s of %s, by Info-ZIP.  Maintained by C. Spieler.  Send\n\
-bug reports using http://www.info-zip.org/zip-bug.html; see README for details.\
+UnZip %d.%d%d%s of %s, by Debian. Original by Info-ZIP.\
 \n\n";
 # else
    static ZCONST char Far UnzipUsageLine1[] = "\
 UnZip %d.%d%d%s of %s, by Info-ZIP.  UnReduce (c) 1989 by S. H. Smith.\n\
-Send bug reports using //www.info-zip.org/zip-bug.html; see README for details.\
-\n\n";
+\n";
 # endif /* ?COPYRIGHT_CLEAN */
 # define UnzipUsageLine1v       UnzipUsageLine1
 #endif /* ?VMS */
 
-static ZCONST char Far UnzipUsageLine2v[] = "\
-Latest sources and executables are at ftp://ftp.info-zip.org/pub/infozip/ ;\
-\nsee ftp://ftp.info-zip.org/pub/infozip/UnZip.html for other sites.\
-\n\n";
+static ZCONST char Far UnzipUsageLine2v[] = "";
 
 #ifdef MACOS
 static ZCONST char Far UnzipUsageLine2[] = "\
@@ -600,7 +605,7 @@ Usage: unzip %s[-opts[modifiers]] file[.zip] [list] [-x xlist] [-d fm]\n \
 \n  file[.zip] may be a wildcard.  %s\n";
 #else /* !VM_CMS */
 static ZCONST char Far UnzipUsageLine2[] = "\
-Usage: unzip %s[-opts[modifiers]] file[.zip] [list] [-x xlist] [-d exdir]\n \
+Usage: unzip %s[-opts[modifiers][-g num]] file[.zip] [list] [-x xlist] [-d exdir]\n \
  Default action is to extract files in list, except those in xlist, to exdir;\n\
   file[.zip] may be a wildcard.  %s\n";
 #endif /* ?VM_CMS */
@@ -642,7 +647,8 @@ static ZCONST char Far UnzipUsageLine3[] = "\n\
   -f  freshen existing files, create none    -t  test compressed archive data\n\
   -u  update files, create if necessary      -z  display archive comment only\n\
   -v  list verbosely/show version info     %s\n\
-  -x  exclude files that follow (in xlist)   -d  extract files into exdir\n";
+  -x  exclude files that follow (in xlist)   -d  extract files into exdir\n\
+  -g  limit the number of overlap files\n";
 #endif /* ?VM_CMS */
 #endif /* ?MACOS */
 
@@ -665,6 +671,17 @@ modifiers:\n\
   -U  use escapes for all non-ASCII Unicode  -UU ignore any Unicode fields\n\
   -C  match filenames case-insensitively     -L  make (some) names \
 lowercase\n %-42s  -V  retain VMS version numbers\n%s";
+#elif (defined UNIX)
+static ZCONST char Far UnzipUsageLine4[] = "\
+modifiers:\n\
+  -n  never overwrite existing files         -q  quiet mode (-qq => quieter)\n\
+  -o  overwrite files WITHOUT prompting      -a  auto-convert any text files\n\
+  -j  junk paths (do not make directories)   -aa treat ALL files as text\n\
+  -U  use escapes for all non-ASCII Unicode  -UU ignore any Unicode fields\n\
+  -C  match filenames case-insensitively     -L  make (some) names \
+lowercase\n %-42s  -V  retain VMS version numbers\n%s\
+  -O CHARSET  specify a character encoding for DOS, Windows and OS/2 archives\n\
+  -I CHARSET  specify a character encoding for UNIX and other archives\n\n";
 #else /* !VMS */
 static ZCONST char Far UnzipUsageLine4[] = "\
 modifiers:\n\
@@ -802,6 +819,10 @@ int unzip(__G__ argc, argv)
     G.unipath_filename = NULL;
 #endif /* UNICODE_SUPPORT */
 
+
+#ifdef UNIX
+    init_conversion_charsets();
+#endif
 
 #if (defined(__IBMC__) && defined(__DEBUG_ALLOC__))
     extern void DebugMalloc(void);
@@ -1329,14 +1350,18 @@ int uz_opts(__G__ pargc, pargv)
     int *pargc;
     char ***pargv;
 {
-    char **argv, *s;
+    char **argv, *s, *zipbomb_envar;
     int argc, c, error=FALSE, negative=0, showhelp=0;
-
 
     argc = *pargc;
     argv = *pargv;
 
-    while (++argv, (--argc > 0 && *argv != NULL && **argv == '-')) {
+#ifdef UNIX
+    extern char OEM_CP[MAX_CP_NAME];
+    extern int forcedCP;
+#endif
+
+	while (++argv, (--argc > 0 && *argv != NULL && **argv == '-')) {
         s = *argv + 1;
         while ((c = *s++) != 0) {    /* "!= 0":  prevent Turbo C warning */
 #ifdef CMS_MVS
@@ -1496,6 +1521,26 @@ int uz_opts(__G__ pargc, pargv)
                         uO.acorn_nfs_ext = TRUE;
                     break;
 #endif /* RISCOS || ACORN_FTYPE_NFS */
+#ifdef UNIX
+                case('g'):  /* set overlap entries */
+                    if (negative) { // invalid param, eg: --g
+                        Info(slide, 0x401, ((char *)slide,
+                          "error: invalid param, eg: unzip --g"));
+                        return(PK_PARAM);
+                    } else {
+                        if (argc > 1) {
+                            char *leftover;
+                            --argc;
+                            ++argv;
+                            uO.max_overlaps = strtoul(*argv, &leftover, 10);
+                        } else {     /* else pwdarg points at decryption password */
+                                Info(slide, 0x401, ((char *)slide,
+                                  "error: invalid param, -g need add decimal number"));
+                                return(PK_PARAM);
+                        }
+                    }
+                    break;
+#endif
                 case ('h'):    /* just print help message and quit */
                     if (showhelp == 0) {
 #ifndef SFX
@@ -1517,6 +1562,37 @@ int uz_opts(__G__ pargc, pargv)
                     }
                     break;
 #endif  /* MACOS */
+#ifdef UNIX
+    			case ('I'):
+                    if (negative) {
+                        Info(slide, 0x401, ((char *)slide,
+                          "error:  encodings can't be negated"));
+                        return(PK_PARAM);
+    				} else {
+    					if(*s) { /* Handle the -Icharset case */
+    						/* Assume that charsets can't start with a dash to spot arguments misuse */
+    						if(*s == '-') {
+    	                        Info(slide, 0x401, ((char *)slide,
+        		                  "error:  a valid character encoding should follow the -I argument"));
+    	                        return(PK_PARAM);
+    						}
+    						strncpy(OEM_CP, s, sizeof(OEM_CP));
+    						forcedCP = 1;
+    					} else { /* -I charset */
+    						++argv;
+    						if(!(--argc > 0 && *argv != NULL && **argv != '-')) {
+    	                        Info(slide, 0x401, ((char *)slide,
+        		                  "error:  a valid character encoding should follow the -I argument"));
+    	                        return(PK_PARAM);
+    						}
+    						s = *argv;
+    						strncpy(OEM_CP, s, sizeof(OEM_CP));
+    						forcedCP = 1;
+    					}
+    					while(*(++s)); /* No params straight after charset name */
+    				}
+    				break;
+#endif /* ?UNIX */
                 case ('j'):    /* junk pathnames/directory structure */
                     if (negative)
                         uO.jflag = FALSE, negative = 0;
@@ -1592,6 +1668,37 @@ int uz_opts(__G__ pargc, pargv)
                     } else
                         ++uO.overwrite_all;
                     break;
+#ifdef UNIX
+    			case ('O'):
+                    if (negative) {
+                        Info(slide, 0x401, ((char *)slide,
+                          "error:  encodings can't be negated"));
+                        return(PK_PARAM);
+    				} else {
+    					if(*s) { /* Handle the -Ocharset case */
+    						/* Assume that charsets can't start with a dash to spot arguments misuse */
+    						if(*s == '-') {
+    	                        Info(slide, 0x401, ((char *)slide,
+        		                  "error:  a valid character encoding should follow the -I argument"));
+    	                        return(PK_PARAM);
+    						}
+    						strncpy(OEM_CP, s, sizeof(OEM_CP));
+    						forcedCP = 1;
+    					} else { /* -O charset */
+    						++argv;
+    						if(!(--argc > 0 && *argv != NULL && **argv != '-')) {
+    	                        Info(slide, 0x401, ((char *)slide,
+        		                  "error:  a valid character encoding should follow the -O argument"));
+    	                        return(PK_PARAM);
+    						}
+    						s = *argv;
+    						strncpy(OEM_CP, s, sizeof(OEM_CP));
+    						forcedCP = 1;
+    					}
+    					while(*(++s)); /* No params straight after charset name */
+    				}
+    				break;
+#endif /* ?UNIX */
                 case ('p'):    /* pipes:  extract to stdout, no messages */
                     if (negative) {
                         uO.cflag = FALSE;
@@ -1767,7 +1874,11 @@ int uz_opts(__G__ pargc, pargv)
 #if (defined(RESTORE_UIDGID) || defined(RESTORE_ACL))
                 case ('X'):   /* restore owner/protection info (need privs?) */
                     if (negative) {
+/* SMSx. */
+#if 0
                         uO.X_flag = MAX(uO.X_flag-negative,0);
+#endif /* 0 */
+                        uO.X_flag = MAX(uO.X_flag-negative, -1);
                         negative = 0;
                     } else
                         ++uO.X_flag;
@@ -1922,6 +2033,18 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
         G.extract_flag = FALSE;
     else
         G.extract_flag = TRUE;
+
+    /* Disable the zipbomb detection, this is the only option set only via the shell variables but it should at least not clash with something in the future. */
+    zipbomb_envar = getenv("UNZIP_DISABLE_ZIPBOMB_DETECTION");
+    uO.zipbomb = TRUE;
+    if (zipbomb_envar != NULL) {
+      /* strcasecmp might be a better approach here but it is POSIX-only */
+      if ((strcmp ("TRUE", zipbomb_envar) == 0)
+       || (strcmp ("True", zipbomb_envar) == 0)
+       || (strcmp ("true",zipbomb_envar) == 0)) {
+        uO.zipbomb = FALSE;
+      }
+    }
 
     *pargc = argc;
     *pargv = argv;
@@ -2145,6 +2268,7 @@ static void help_extended(__G)
   "         information.  Also can be added to other list commands for more",
   "         verbose output.",
   "  -z   Display only archive comment.",
+  "  -g   Limit the number of overlap files.",
   "",
   "unzip modifiers:",
   "  -a   Convert text files to local OS format.  Convert line ends, EOF",
@@ -2163,6 +2287,7 @@ static void help_extended(__G)
   "         ACORN_FTYPE_NFS] Translate filetype and append to name.",
   "  -i   [MacOS] Ignore filenames in MacOS extra field.  Instead, use name in",
   "         standard header.",
+  "  -I CHARSET  [UNIX] Specify a character encoding for UNIX and other archives.",
   "  -j   Junk paths and deposit all files in extraction directory.",
   "  -J   [BeOS] Junk file attributes.  [MacOS] Ignore MacOS specific info.",
   "  -K   [AtheOS, BeOS, Unix] Restore SUID/SGID/Tacky file attributes.",
@@ -2173,6 +2298,8 @@ static void help_extended(__G)
   "  -N   [Amiga] Extract file comments as Amiga filenotes.",
   "  -o   Overwrite existing files without prompting.  Useful with -f.  Use with",
   "         care.",
+  "  -O CHARSET  [UNIX] Specify a character encoding for DOS, Windows",
+  "                and OS/2 archives.",
   "  -P p Use password p to decrypt files.  THIS IS INSECURE!  Some OS show",
   "         command line to other users.",
   "  -q   Perform operations quietly.  The more q (as in -qq) the quieter.",
@@ -2265,6 +2392,9 @@ static void help_extended(__G)
   "        representing the Unicode character number of the character in hex.",
   "  -UU [UNICODE]  Disable use of any UTF-8 path information.",
   "  -z  Include archive comment if any in listing.",
+  "  -O CHARSET  [UNIX] Specify a character encoding for DOS, Windows",
+  "                and OS/2 archives.",
+  "  -I CHARSET  [UNIX] Specify a character encoding for UNIX and other archives.",
   "",
   "",
   "funzip stream extractor:",

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 1990-2009 Info-ZIP.  All rights reserved.
+  Copyright (c) 1990-2022 Info-ZIP.  All rights reserved.
 
   See the accompanying file LICENSE, version 2009-Jan-02 or later
   (the contents of which are also included in unzip.h) for terms of use.
@@ -32,6 +32,11 @@
 # ifndef RISCOS
 #  define MORE
 # endif
+#endif
+
+/* Define old bzip2 macro according to modern bzip2 macro. */
+#ifdef BZIP2_SUPPORT
+#  define USE_BZIP2
 #endif
 
 /* fUnZip should never need to be reentrant */
@@ -678,6 +683,9 @@
 
 #define UNZIP_BZ2VERS   46
 #ifdef ZIP64_SUPPORT
+# ifndef LARGE_FILE_SUPPORT
+#  define LARGE_FILE_SUPPORT
+# endif
 # ifdef USE_BZIP2
 #  define UNZIP_VERSION   UNZIP_BZ2VERS
 # else
@@ -1226,6 +1234,9 @@
  */
 #ifdef _MBCS
 #  include <locale.h>
+#  ifdef HAVE_MBSTR_H
+#    include <mbstr.h>
+#  endif /* def HAVE_MBSTR_H */
    /* Multi Byte Character Set */
 #  define ___MBS_TMP_DEF  char *___tmp_ptr;
 #  define ___TMP_PTR      ___tmp_ptr
@@ -2031,6 +2042,7 @@ typedef struct min_info {
 #ifdef UNICODE_SUPPORT
     unsigned GPFIsUTF8: 1;   /* crec gen_purpose_flag UTF-8 bit 11 is set */
 #endif
+    unsigned zip64: 1;       /* true if entry has Zip64 extra block */
 #ifndef SFX
     char Far *cfilname;      /* central header version of filename */
 #endif
@@ -2185,6 +2197,16 @@ typedef struct VMStimbuf {
        int have_ecr64;                  /* valid Zip64 ecdir-record exists */
        int is_zip64_archive;            /* Zip64 ecdir-record is mandatory */
        ush zipfile_comment_length;
+       zusz_t ec_start, ec_end;         /* offsets of start and end of the
+                                           end of central directory record,
+                                           including if present the Zip64
+                                           end of central directory locator,
+                                           which immediately precedes the
+                                           end of central directory record */
+       zusz_t ec64_start, ec64_end;     /* if have_ecr64 is true, then these
+                                           are the offsets of the start and
+                                           end of the Zip64 end of central
+                                           directory record */
    } ecdir_rec;
 
 
@@ -2604,7 +2626,7 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
    int   SetFileSize     OF((FILE *file, zusz_t filesize));         /* local */
 #endif
 #ifndef MTS /* macro in MTS */
-   void  close_outfile   OF((__GPRO));                              /* local */
+   int  close_outfile   OF((__GPRO));                              /* local */
 #endif
 #ifdef SET_SYMLINK_ATTRIBS
    int  set_symlnk_attribs  OF((__GPRO__ slinkentry *slnk_entry));  /* local */
@@ -3002,16 +3024,43 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
  *
  * All other ports are assumed to code zip entry filenames in ISO 8859-1.
  */
+
+/* 2024-05-25 Removed "|| (isuxatt)": actually we know nothing
+ * about local system's codepage of PKZIP 2.51 UNIX users.
+ * Also removed "_ISO_INTERN((string)); \":
+ * Windows ANSI is not always 1252, also standard defines default
+ * charset as CP437, not ISO 8859-1. But in fact most of packers
+ * just used local system's charset, so without any charset translation
+ * we will at least make such archives processed correctly
+ * on the same system - Ivan Sorokin <unxed@mail.ru>
+ */
+
+/* Defined only on Unix for now */
+#ifndef _ANSI_INTERN
+#define _ANSI_INTERN(str1) {}
+#endif
+#ifndef UNIX
+int forcedCP = 0;
+#else
+extern int forcedCP;
+#endif
+
 #ifndef Ext_ASCII_TO_Native
 #  define Ext_ASCII_TO_Native(string, hostnum, hostver, isuxatt, islochdr) \
-    if (((hostnum) == FS_FAT_ && \
-         !(((islochdr) || (isuxatt)) && \
+    if ((forcedCP) == 1) { \
+        _OEM_INTERN((string)); \
+    } else if ((hostnum) == FS_NTFS_ && (hostver) >= 20) { \
+        _ANSI_INTERN((string)); \
+    } else if (((hostnum) == FS_FAT_ && \
+         !((islochdr) && \
            ((hostver) == 25 || (hostver) == 26 || (hostver) == 40))) || \
         (hostnum) == FS_HPFS_ || \
-        ((hostnum) == FS_NTFS_ && (hostver) == 50)) { \
+        (hostnum) == FS_NTFS_) { \
         _OEM_INTERN((string)); \
-    } else { \
-        _ISO_INTERN((string)); \
+    } else if (((hostnum) == FS_FAT_ && \
+         ((islochdr) && \
+          ((hostver) == 25 || (hostver) == 26 || (hostver) == 40)))) { \
+        _ANSI_INTERN((string)); \
     }
 #endif
 

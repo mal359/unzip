@@ -127,6 +127,8 @@
                                     when processing invalid compressed data and
                                     hitting premature EOF, do not reuse td as
                                     temp work ptr during tables decoding
+   c17f  13 Jul 10  S. Schweda		Added FUNZIP conditionality to uses of
+                                    G.disk_full.
  */
 
 
@@ -299,6 +301,13 @@
 #  define wsize WSIZE       /* wsize is a constant */
 #endif
 
+/* Type cast for wsize.  Should not overflow at 64K. */
+#ifdef INT_16BIT
+# define WSCAST unsigned long
+#else
+# define WSCAST unsigned
+#endif
+
 
 #ifndef NEXTBYTE        /* default is to simply get a byte from stdin */
 #  define NEXTBYTE getchar()
@@ -414,11 +423,23 @@ int UZinflate(__G__ is_defl64)
 #if USE_ZLIB_INFLATCB
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide)
+    /* 2012-03-15 SMS.
+     * Problem reported by Ireneusz Hallmann.
+     *       inflateBack() reuses the beginning of the output buffer
+     *       if amount of output data is larger than window size.
+     *       Therefore separate redirect buffer must be used for larger files.
+     * Formerly, the condition below was simply:
+     *     if (G.redirect_slide)
+     */
+    if (G.redirect_slide && (G.redirect_size <= WSIZE)
+#   ifdef USE_DEFLATE64
+     && (is_defl64 || (G.redirect_size <= (WSIZE >> 1)))
+#   endif
+     )
         wsize = G.redirect_size, redirSlide = G.redirect_buffer;
     else
         wsize = WSIZE, redirSlide = slide;
-#endif
+#  endif /* (defined(DLL) && !defined(NO_SLIDE_REDIR)) */
 
     if (!G.inflInit) {
         /* local buffer for efficiency */
@@ -473,7 +494,11 @@ int UZinflate(__G__ is_defl64)
                     retval = 2;
                 } else {
                     /* output write failure */
+#ifdef FUNZIP
+                    retval = PK_DISK;
+#else /* def FUNZIP */
                     retval = (G.disk_full != 0 ? PK_DISK : IZ_CTRLC);
+#endif /* def FUNZIP [else] */
                 }
             } else {
                 Trace((stderr, "oops!  (inflateBack9() err = %d)\n", err));
@@ -501,12 +526,30 @@ int UZinflate(__G__ is_defl64)
         {
             unsigned i;
             int windowBits;
-            /* windowBits = log2(wsize) */
-            for (i = (unsigned)wsize, windowBits = 0;
-                 !(i & 1);  i >>= 1, ++windowBits);
-            if ((unsigned)windowBits > (unsigned)15)
+            /* windowBits = log2(wsize), min = 8, max = 15. */
+            /* 2012-03-15 SMS.
+             * Problem reported by Ireneusz Hallmann.  Calculation of
+             * windowBits was defective for non-power-of-two values of
+             * wsize.
+             * Simplified method.  Should give the same results for
+             * power-of-two values of wsize (and less goofy results for
+             * non-power-of-two values).  Using "wsize-1+wsize"
+             * effectively rounds up to the next higher power of two.
+             * (256 -> 8, 257 -> 9, 512 -> 9, 513 -> 10, ...)  Was:
+             *
+             * for (i = (unsigned)wsize, windowBits = 0;
+             *      !(i & 1);  i >>= 1, ++windowBits);
+             */  /* ^^^^^^^^--- Eewww. */ /*
+             * if ((unsigned)windowBits > (unsigned)15)
+             *     windowBits = 15;
+             * else if (windowBits < 8)
+             *     windowBits = 8;
+             */
+            for (i = ((WSCAST)wsize- 1+ (WSCAST)wsize) >> 9, windowBits = 8;
+             i != 0; i >>= 1, ++windowBits);
+            if (windowBits > 15)
                 windowBits = 15;
-            else if (windowBits < 8)
+			else if (windowBits < 8)
                 windowBits = 8;
 
             Trace((stderr, "initializing inflate()\n"));
@@ -538,7 +581,11 @@ int UZinflate(__G__ is_defl64)
                     retval = 2;
                 } else {
                     /* output write failure */
+#ifdef FUNZIP
+                    retval = PK_DISK;
+#else /* def FUNZIP */
                     retval = (G.disk_full != 0 ? PK_DISK : IZ_CTRLC);
+#endif /* def FUNZIP [else] */
                 }
             } else {
                 Trace((stderr, "oops!  (inflateBack() err = %d)\n", err));
@@ -561,12 +608,19 @@ int UZinflate(__G__ is_defl64)
 #else /* !USE_ZLIB_INFLATCB */
     int repeated_buf_err;
 
-#if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide)
+#  if (defined(DLL) && !defined(NO_SLIDE_REDIR))
+    /* 2012-03-15 SMS.
+     * See comments above (in the USE_ZLIB_INFLATCB section).
+     */
+    if (G.redirect_slide && (G.redirect_size <= WSIZE)
+#   ifdef USE_DEFLATE64
+     && (is_defl64 || (G.redirect_size <= (WSIZE >> 1)))
+#   endif
+     )
         wsize = G.redirect_size, redirSlide = G.redirect_buffer;
     else
         wsize = WSIZE, redirSlide = slide;
-#endif
+#  endif /* (defined(DLL) && !defined(NO_SLIDE_REDIR)) */
 
     G.dstrm.next_out = redirSlide;
     G.dstrm.avail_out = wsize;
@@ -591,13 +645,16 @@ int UZinflate(__G__ is_defl64)
               "warning:  different zlib version (expected %s, using %s)\n",
               ZLIB_VERSION, zlib_RtVersion));
 
-        /* windowBits = log2(wsize) */
-        for (i = (unsigned)wsize, windowBits = 0;
-             !(i & 1);  i >>= 1, ++windowBits);
-        if ((unsigned)windowBits > (unsigned)15)
+        /* windowBits = log2(wsize), min = 8, max = 15. */
+        /* 2012-03-15 SMS.
+         * See comments above (on the similar windowBits calculation).
+         */
+        for (i = ((WSCAST)wsize- 1+ (WSCAST)wsize) >> 9, windowBits = 8;
+         i != 0; i >>= 1, ++windowBits);
+        if (windowBits > 15)
             windowBits = 15;
-        else if (windowBits < 8)
-            windowBits = 8;
+		else if (windowBits < 8)
+			windowBits = 8;
 
         G.dstrm.zalloc = (alloc_func)Z_NULL;
         G.dstrm.zfree = (free_func)Z_NULL;
@@ -700,7 +757,7 @@ int UZinflate(__G__ is_defl64)
       G.dstrm.total_out));
 
     G.inptr = (uch *)G.dstrm.next_in;
-    G.incnt = (G.inbuf + INBUFSIZ) - G.inptr;  /* reset for other routines */
+    G.incnt -= G.inptr - G.inbuf;       /* reset for other routines */
 
 uzinflate_cleanup_exit:
     err = inflateReset(&G.dstrm);

@@ -1046,7 +1046,7 @@ int SetFileSize(FILE *file, zusz_t filesize)
 /* Function close_outfile() */
 /****************************/
 
-void close_outfile(__G)
+int close_outfile(__G)
     __GDEF
 {
     FILETIME Modft;    /* File time type defined in NT, `last modified' time */
@@ -2565,8 +2565,18 @@ void version(__G)
       (sprintf(buf, "Watcom C/C++ %d.%02d", __WATCOMC__ / 100,
        __WATCOMC__ % 100), buf), "",
 #  else
-      (sprintf(buf, "Watcom C/C++ %d.%d", __WATCOMC__ / 100,
+#  if (__WATCOMC__ == 1300)
+      (sprintf(buf, "Open Watcom C/C++ 2.0", __WATCOMC__ / 100,
        (__WATCOMC__ % 100) / 10), buf), "",
+#  else
+#  if (__WATCOMC__ >= 1300)
+      (sprintf(buf, "Open Watcom C/C++ %d.%d", __WATCOMC__ / 100,
+       (__WATCOMC__ % 100) / 10), buf), "",
+#  else
+	  (sprintf(buf, "Watcom C/C++ %d.%d", __WATCOMC__ / 100,
+       (__WATCOMC__ % 100) / 10), buf), "",
+#  endif
+#  endif
 #  endif
 #elif defined(__BORLANDC__)
       "Borland C++",
@@ -2629,8 +2639,11 @@ void version(__G)
 #else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__GNUC__ */
       "unknown compiler (SDK?)", "",
 #endif /* ?compilers */
-
-      "\nWindows 9x / Windows NT/2K/XP/2K3", " (32-bit)",
+#ifdef _WIN64
+	  "64-bit ", "Windows",
+#else
+      "32-bit ", "Windows",
+#endif
 
 #ifdef __DATE__
       " on ", __DATE__

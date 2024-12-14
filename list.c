@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 1990-2009 Info-ZIP.  All rights reserved.
+  Copyright (c) 1990-2016 Info-ZIP.  All rights reserved.
 
   See the accompanying file LICENSE, version 2009-Jan-02 or later
   (the contents of which are also included in unzip.h) for terms of use.
@@ -97,7 +97,7 @@ int list_files(__G)    /* return PK-type error code */
 {
     int do_this_file=FALSE, cfactor, error, error_in_archive=PK_COOL;
 #ifndef WINDLL
-    char sgn, cfactorstr[10];
+    char sgn, cfactorstr[1+10+1+1];	/* <sgn><int>%NUL */
     int longhdr=(uO.vflag>1);
 #endif
     int date_format;
@@ -116,7 +116,7 @@ int list_files(__G)    /* return PK-type error code */
     ulg acl_size, tot_aclsize=0L, tot_aclfiles=0L;
 #endif
     min_info info;
-    char methbuf[8];
+    char methbuf[80];
     static ZCONST char dtype[]="NXFS";  /* see zi_short() */
     static ZCONST char Far method[NUM_METHODS+1][8] =
         {"Stored", "Shrunk", "Reduce1", "Reduce2", "Reduce3", "Reduce4",
@@ -181,7 +181,7 @@ int list_files(__G)    /* return PK-type error code */
                 Info(slide, 0x401,
                      ((char *)slide, LoadFarString(CentSigMsg), j));
                 Info(slide, 0x401,
-                     ((char *)slide, LoadFarString(ReportMsg)));
+                     ((char *)slide,"%s", LoadFarString(ReportMsg)));
                 return PK_BADERR;   /* sig not found */
             }
         }
@@ -339,7 +339,18 @@ int list_files(__G)    /* return PK-type error code */
                 G.crec.compression_method == ENHDEFLATED) {
                 methbuf[5] = dtype[(G.crec.general_purpose_bit_flag>>1) & 3];
             } else if (methnum >= NUM_METHODS) {
-                sprintf(&methbuf[4], "%03u", G.crec.compression_method);
+                /* 2013-02-26 SMS.
+                 * http://sourceforge.net/p/infozip/bugs/27/  CVE-2014-9913.
+                 * Unexpectedly large compression methods overflow
+                 * &methbuf[].  Use the old, three-digit decimal format
+                 * for values which fit.  Otherwise, sacrifice the
+                 * colon, and use four-digit hexadecimal.
+                 */
+                if (G.crec.compression_method <= 999) {
+                    sprintf( &methbuf[ 4], "%03u", G.crec.compression_method);
+                } else {
+                    sprintf( &methbuf[ 3], "%04X", G.crec.compression_method);
+                }
             }
 
 #if 0       /* GRR/Euro:  add this? */
@@ -378,9 +389,9 @@ int list_files(__G)    /* return PK-type error code */
             }
 #else /* !WINDLL */
             if (cfactor == 100)
-                sprintf(cfactorstr, LoadFarString(CompFactor100));
+                snprintf(cfactorstr, sizeof(cfactorstr), LoadFarString(CompFactor100));
             else
-                sprintf(cfactorstr, LoadFarString(CompFactorStr), sgn, cfactor);
+                snprintf(cfactorstr, sizeof(cfactorstr), LoadFarString(CompFactorStr), sgn, cfactor);
             if (longhdr)
                 Info(slide, 0, ((char *)slide, LoadFarString(LongHdrStats),
                   FmZofft(G.crec.ucsize, "8", "u"), methbuf,
@@ -460,9 +471,9 @@ int list_files(__G)    /* return PK-type error code */
 
 #else /* !WINDLL */
         if (cfactor == 100)
-            sprintf(cfactorstr, LoadFarString(CompFactor100));
+            snprintf(cfactorstr, sizeof(cfactorstr), LoadFarString(CompFactor100));
         else
-            sprintf(cfactorstr, LoadFarString(CompFactorStr), sgn, cfactor);
+            snprintf(cfactorstr, sizeof(cfactorstr), LoadFarString(CompFactorStr), sgn, cfactor);
         if (longhdr) {
             Info(slide, 0, ((char *)slide, LoadFarString(LongFileTrailer),
               FmZofft(tot_ucsize, "8", "u"), FmZofft(tot_csize, "8", "u"),
@@ -507,7 +518,8 @@ int list_files(__G)    /* return PK-type error code */
             && (!G.ecrec.is_zip64_archive)
             && (memcmp(G.sig, end_central_sig, 4) != 0)
            ) {          /* just to make sure again */
-            Info(slide, 0x401, ((char *)slide, LoadFarString(EndSigMsg)));
+            Info(slide, 0x401, 
+                 ((char *)slide,"%s", LoadFarString(EndSigMsg)));
             error_in_archive = PK_WARN;   /* didn't find sig */
         }
 
@@ -591,7 +603,7 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
                 Info(slide, 0x401,
                      ((char *)slide, LoadFarString(CentSigMsg), j));
                 Info(slide, 0x401,
-                     ((char *)slide, LoadFarString(ReportMsg)));
+                     ((char *)slide,"%s", LoadFarString(ReportMsg)));
                 return PK_BADERR;   /* sig not found */
             }
         }
@@ -674,7 +686,7 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
     if (memcmp(G.sig, end_central_sig, 4)) {    /* just to make sure again */
-        Info(slide, 0x401, ((char *)slide, LoadFarString(EndSigMsg)));
+        Info(slide, 0x401, ((char *)slide,"%s", LoadFarString(EndSigMsg)));
         error_in_archive = PK_WARN;
     }
     if (*nmember == 0L && error_in_archive <= PK_WARN)

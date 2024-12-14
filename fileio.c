@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 1990-2009 Info-ZIP.  All rights reserved.
+  Copyright (c) 1990-2022 Info-ZIP.  All rights reserved.
 
   See the accompanying file LICENSE, version 2009-Jan-02 or later
   (the contents of which are also included in unzip.h) for terms of use.
@@ -171,11 +171,15 @@ static ZCONST char Far ReadError[] = "error:  zipfile read error\n";
 static ZCONST char Far FilenameTooLongTrunc[] =
   "warning:  filename too long--truncating.\n";
 #ifdef UNICODE_SUPPORT
+   static ZCONST char Far UFilenameCorrupt[] =
+     "error: Unicode filename corrupt.\n";
    static ZCONST char Far UFilenameTooLongTrunc[] =
-     "warning:  Converted unicode filename too long--truncating.\n";
+     "warning:  Converted Unicode filename too long--truncating.\n";
 #endif
 static ZCONST char Far ExtraFieldTooLong[] =
   "warning:  extra field too long (%d).  Ignoring...\n";
+static ZCONST char Far ExtraFieldCorrupt[] =
+  "warning:  extra field (type: 0x%04x) corrupt.  Continuing...\n";
 
 #ifdef WINDLL
    static ZCONST char Far DiskFullQuery[] =
@@ -530,8 +534,10 @@ void undefer_input(__G)
          * This condition was checked when G.incnt_leftover was set > 0 in
          * defer_leftover_input(), and it is NOT allowed to touch G.csize
          * before calling undefer_input() when (G.incnt_leftover > 0)
-         * (single exception: see read_byte()'s  "G.csize <= 0" handling) !!
+         * (single exception: see readbyte()'s  "G.csize <= 0" handling) !!
          */
+        if (G.csize < 0L)
+            G.csize = 0L;
         G.incnt = G.incnt_leftover + (int)G.csize;
         G.inptr = G.inptr_leftover - (int)G.csize;
         G.incnt_leftover = 0;
@@ -1489,7 +1495,7 @@ int UZ_EXP UzpInput(pG, buf, size, flag)
     int flag;     /* flag bits (bit 0: no echo) */
 {
     /* tell picky compilers to shut up about "unused variable" warnings */
-    pG = pG; buf = buf; flag = flag;
+    (void)pG; (void)buf; (void)flag;
 
     *size = 0;
     return 0;
@@ -1580,15 +1586,27 @@ int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
     int r = IZ_PW_ENTERED;
     char *m;
     char *prompt;
+    char *zfnf;
+    char *efnf;
+    size_t zfnfl;
+    int isOverflow;
 
 #ifndef REENTRANT
     /* tell picky compilers to shut up about "unused variable" warnings */
-    pG = pG;
+    (void)pG;
 #endif
 
     if (*rcnt == 0) {           /* First call for current entry */
         *rcnt = 2;
-        if ((prompt = (char *)malloc(2*FILNAMSIZ + 15)) != (char *)NULL) {
+        zfnf = FnFilter1(zfn);
+        efnf = FnFilter2(efn);
+        zfnfl = strlen(zfnf);
+        isOverflow = TRUE;
+        if (2*FILNAMSIZ >= zfnfl && (2*FILNAMSIZ - zfnfl) >= strlen(efnf))
+        {
+		isOverflow = FALSE;
+        }
+        if ((isOverflow == FALSE) && ((prompt = (char *)malloc(2*FILNAMSIZ + 15)) != (char *)NULL)) {
             sprintf(prompt, LoadFarString(PasswPrompt),
                     FnFilter1(zfn), FnFilter2(efn));
             m = prompt;
@@ -1614,7 +1632,7 @@ int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
 
 #else /* !CRYPT */
     /* tell picky compilers to shut up about "unused variable" warnings */
-    pG = pG; rcnt = rcnt; pwbuf = pwbuf; size = size; zfn = zfn; efn = efn;
+    (void)pG; (void)rcnt; (void)pwbuf; (void)size; (void)zfn; (void)efn;
 
     return IZ_PW_ERROR;  /* internal error; function should never get called */
 #endif /* ?CRYPT */
@@ -2126,9 +2144,15 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 /* translate the text coded in the entry's host-dependent
                    "extended ASCII" charset into the compiler's (system's)
                    internal text code page */
-                Ext_ASCII_TO_Native((char *)G.outbuf, G.pInfo->hostnum,
-                                    G.pInfo->hostver, G.pInfo->HasUxAtt,
-                                    FALSE);
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+                if (!G.pInfo->GPFIsUTF8 || !G.native_is_utf8) {
+#endif
+                        Ext_ASCII_TO_Native((char *)G.outbuf, G.pInfo->hostnum,
+                                            G.pInfo->hostver, G.pInfo->HasUxAtt,
+                                            FALSE);
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+                }
+#endif
 #ifdef WINDLL
                 /* translate to ANSI (RTL internal codepage may be OEM) */
                 INTERN_TO_ISO((char *)G.outbuf, (char *)G.outbuf);
@@ -2240,8 +2264,14 @@ int do_string(__G__ length, option)   /* return PK-type error code */
 
         /* translate the Zip entry filename coded in host-dependent "extended
            ASCII" into the compiler's (system's) internal text code page */
-        Ext_ASCII_TO_Native(G.filename, G.pInfo->hostnum, G.pInfo->hostver,
-                            G.pInfo->HasUxAtt, (option == DS_FN_L));
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+        if (!G.pInfo->GPFIsUTF8 || !G.native_is_utf8) {
+#endif
+            Ext_ASCII_TO_Native(G.filename, G.pInfo->hostnum, G.pInfo->hostver,
+                                G.pInfo->HasUxAtt, (option == DS_FN_L));
+#if (defined(UNICODE_SUPPORT) && defined(UTF8_MAYBE_NATIVE))
+        }
+#endif
 
         if (G.pInfo->lcflag)      /* replace with lowercase filename */
             STRLOWER(G.filename, G.filename);
@@ -2292,10 +2322,18 @@ int do_string(__G__ length, option)   /* return PK-type error code */
             seek_zipf(__G__ G.cur_zipfile_bufstart - G.extra_bytes +
                       (G.inptr-G.inbuf) + length);
         } else {
-            if (readbuf(__G__ (char *)G.extra_field, length) == 0)
+            unsigned bytes_read = readbuf(__G__ (char *)G.extra_field, length);
+            if (bytes_read == 0)
                 return PK_EOF;
+            if (bytes_read != length)
+                return PK_ERR;
             /* Looks like here is where extra fields are read */
-            getZip64Data(__G__ G.extra_field, length);
+            if (getZip64Data(__G__ G.extra_field, length) != PK_COOL)
+            {
+                Info(slide, 0x401, ((char *)slide,
+                 LoadFarString( ExtraFieldCorrupt), EF_PKSZ64));
+                error = PK_WARN;
+            }
 #ifdef UNICODE_SUPPORT
             G.unipath_filename = NULL;
             if (G.UzO.U_flag < 2) {
@@ -2340,16 +2378,30 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                   /* convert UTF-8 to local character set */
                   fn = utf8_to_local_string(G.unipath_filename,
                                             G.unicode_escape_all);
-                  /* make sure filename is short enough */
-                  if (strlen(fn) >= FILNAMSIZ) {
-                    fn[FILNAMSIZ - 1] = '\0';
+
+                  /* 2022-07-22 SMS, et al.  CVE-2022-0530
+                   * Detect conversion failure, emit message.
+                   * Continue with unconverted name.
+                   */
+                  if (fn == NULL)
+                  {
                     Info(slide, 0x401, ((char *)slide,
-                      LoadFarString(UFilenameTooLongTrunc)));
-                    error = PK_WARN;
+                     LoadFarString(UFilenameCorrupt)));
+                    error = PK_ERR;
                   }
-                  /* replace filename with converted UTF-8 */
-                  strcpy(G.filename, fn);
-                  free(fn);
+                  else
+                  {
+                    /* make sure filename is short enough */
+                    if (strlen(fn) >= FILNAMSIZ) {
+                      fn[FILNAMSIZ - 1] = '\0';
+                      Info(slide, 0x401, ((char *)slide,
+                        LoadFarString(UFilenameTooLongTrunc)));
+                      error = PK_WARN;
+                    }
+                    /* replace filename with converted UTF-8 */
+                    strcpy(G.filename, fn);
+                    free(fn);
+                  }
                 }
 # endif /* UNICODE_WCHAR */
                 if (G.unipath_filename != G.filename_full)
@@ -2458,6 +2510,7 @@ zusz_t makeint64(sig)
      */
     return (((zusz_t)sig[7]) << 56)
         + (((zusz_t)sig[6]) << 48)
+        + (((zusz_t)sig[5]) << 40)
         + (((zusz_t)sig[4]) << 32)
         + (zusz_t)((((ulg)sig[3]) << 24)
                  + (((ulg)sig[2]) << 16)

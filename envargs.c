@@ -31,6 +31,7 @@
 #define __ENVARGS_C     /* identifies this source module */
 #define UNZIP_INTERNAL
 #include "unzip.h"
+#include <string.h>
 
 #ifdef __EMX__          /* emx isspace() returns TRUE on extended ASCII !! */
 #  define ISspace(c) ((c) & 0x80 ? 0 : isspace((unsigned)c))
@@ -118,7 +119,8 @@ int envargs(Pargc, Pargv, envstr, envstr2)
 
             /* remove escape characters */
             while ((argstart = MBSCHR(argstart, '\\')) != (char *)NULL) {
-                strcpy(argstart, argstart + 1);
+                //strcpy(argstart, argstart + 1);
+		memmove(argstart, argstart + 1,strlen(argstart + 1) + 1);
                 if (*argstart)
                     ++argstart;
             }

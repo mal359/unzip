@@ -42,8 +42,8 @@ avars = $+$(avars)$- -DLZW_CLEAN
 # this Make defers inner expansion until the outer macro is expanded.
 !endif
 !ifdef OFFEND_RMS
-cvars = $+$(cvars)$- -DUSE_SMITH_CODE
-avars = $+$(avars)$- -DUSE_SMITH_CODE
+cvars = $+$(cvars)$- -DUSE_SMITH_CODE -DDOSWILD -DWILD_STOP_AT_DIR -DNO_W32TIMES_IZFIX -DHAVE_WORKING_ISPRINT -DACORN_FTYPE_NFS -DQLZIP -DOS2_EAS -DMULT_VOLUME -DSFX_EXDIR -DDELETE_IF_FULL  
+avars = $+$(avars)$- -DUSE_SMITH_CODE -DDOSWILD -DWILD_STOP_AT_DIR -DNO_W32TIMES_IZFIX -DHAVE_WORKING_ISPRINT -DACORN_FTYPE_NFS -DQLZIP -DOS2_EAS -DMULT_VOLUME -DSFX_EXDIR -DDELETE_IF_FULL  
 !endif
 
 IZ_BZIP2 = bzip2
@@ -126,7 +126,7 @@ link   = wlink
 asm    = wasm
 rc     = wrc
 # Use Pentium Pro timings, register args, static strings in code, high strictness:
-cflags = -bt=NT -6r -zt -zq -wx
+cflags = -bt=NT -6r -zt -zq -wx -bm
 aflags = -bt=NT -mf -3 -zq
 rflags = -bt=NT
 lflags = sys NT
@@ -141,8 +141,8 @@ cdebug = -od -d2
 cdebux = -od -d2
 ldebug = d w all op symf
 !else
-cdebug = -s -obhikl+rt -oe=100 -zp8
-cdebux = -s -obhiklrs
+cdebug = -s -otexan
+cdebux = -s -otexan
 # -oa helps slightly but might be dangerous.
 ldebug = op el
 !endif
