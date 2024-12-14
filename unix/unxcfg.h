@@ -104,7 +104,9 @@ typedef struct stat z_stat;
 #ifdef __CYGWIN__
 #  include <unistd.h>
 #  define DIRENT
-#  define HAVE_TERMIOS_H
+#  ifndef HAVE_TERMIOS_H
+#    define HAVE_TERMIOS_H
+#  endif
 #  ifndef timezone
 #    define timezone _timezone
 #  endif

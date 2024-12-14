@@ -51,7 +51,7 @@
 
   ---------------------------------------------------------------------------
 
-  Version:  unzip5??.{tar.Z | tar.gz | zip} for Unix, VMS, OS/2, MS-DOS, Amiga,
+  Version:  unzip5??.{tar.Z | tar.gz | zip} for UNIX, VMS, OS/2, MS-DOS, Amiga,
               Atari, Windows 3.x/95/NT/CE, Macintosh, Human68K, Acorn RISC OS,
               AtheOS, BeOS, SMS/QDOS, VM/CMS, MVS, AOS/VS, Tandem NSK, Theos
               and TOPS-20.
@@ -297,9 +297,9 @@ M  pipe through \"more\" pager              -s  spaces in filenames => '_'\n\n";
 #endif
 #else /* !AMIGA */
 #ifdef MACOS
-   static ZCONST char Far local2[] = " -E  show Mac info during extraction";
+   static ZCONST char Far local2[] = " -E  show Macintosh info upon extract";
    static ZCONST char Far local3[] = " \
- -i  ignore filenames in mac extra info     -J  junk (ignore) Mac extra info\n\
+ -i  ignore filenames in Macintosh extra info  -J  junk Macintosh extra info\n\
 \n";
 #else /* !MACOS */
 #ifdef MORE
@@ -334,9 +334,9 @@ in list (excluding those in xlist) contained in the specified .zip archive(s).\
       or:  unzip %s-Z%s [-12smlvChMtTz] file[.zip] [list...] [-x xlist...]\n";
 
 static ZCONST char Far ZipInfoUsageLine2[] = "\nmain\
- listing-format options:             -s  short Unix \"ls -l\" format (def.)\n\
-  -1  filenames ONLY, one per line       -m  medium Unix \"ls -l\" format\n\
-  -2  just filenames but allow -h/-t/-z  -l  long Unix \"ls -l\" format\n\
+ listing-format options:             -s  short UNIX \"ls -l\" format (def.)\n\
+  -1  filenames ONLY, one per line       -m  medium UNIX \"ls -l\" format\n\
+  -2  just filenames but allow -h/-t/-z  -l  long UNIX \"ls -l\" format\n\
                                          -v  verbose, multi-page format\n";
 
 #ifndef UNIX
@@ -1152,7 +1152,7 @@ int unzip(__G__ argc, argv)
   ---------------------------------------------------------------------------*/
 
 #ifdef DOS_FLX_H68_NLM_OS2_W32
-    /* convert MSDOS-style 'backward slash' directory separators to Unix-style
+    /* convert MSDOS-style 'backward slash' directory separators to UNIX-style
      * 'forward slashes' for user's convenience (include zipfile name itself)
      */
 #ifdef SFX
@@ -2278,14 +2278,13 @@ static void help_extended(__G)
   "  zipinfo options archive[.zip] [file ...] [-x xfile ...]",
   "  unzip -Z options archive[.zip] [file ...] [-x xfile ...]",
   "",
-  "Below, Mac OS refers to Mac OS before Mac OS X.  Mac OS X is a Unix based",
-  "port and is referred to as Unix Apple.",
+  "Below, \"Macintosh\" refers to Classic Mac OS.",
   "",
   "",
   "unzip options:",
   "  -Z   Switch to zipinfo mode.  Must be first option.",
   "  -hh  Display extended help.",
-  "  -A   [OS/2, Unix DLL] Print extended help for DLL.",
+  "  -A   [OS/2, UNIX DLL] Print extended help for DLL.",
   "  -c   Extract files to stdout/screen.  As -p but include names.  Also,",
   "         -a allowed and EBCDIC conversions done if needed.",
   "  -f   Freshen by extracting only if older file on disk.",
@@ -2313,19 +2312,19 @@ static void help_extended(__G)
   "  -D   Skip restoration of timestamps for extracted directories.  On VMS this",
   "         is on by default and -D essentially becames -DD.",
   "  -DD  Skip restoration of timestamps for all entries.",
-  "  -E   [MacOS (not Unix Apple)]  Display contents of MacOS extra field during",
-  "         restore.",
+  "  -E   [Macintosh]  Display contents of Macintosh extra field during restore.",
   "  -F   [Acorn] Suppress removal of NFS filetype extension.  [Non-Acorn if",
   "         ACORN_FTYPE_NFS] Translate filetype and append to name.",
-  "  -i   [MacOS] Ignore filenames in MacOS extra field.  Instead, use name in",
-  "         standard header.",
+  "  -i   [Macintosh] Ignore filenames in Macintosh extra field.",
+  "         Instead, use name in standard header.",
   "  -I CHARSET  [UNIX] Specify a character encoding for UNIX and other archives.",
   "  -j   Junk paths and deposit all files in extraction directory.",
-  "  -J   [BeOS] Junk file attributes.  [MacOS] Ignore MacOS specific info.",
-  "  -K   [AtheOS, BeOS, Unix] Restore SUID/SGID/Tacky file attributes.",
+  "  -J   [BeOS, Haiku] Junk file attributes.",  
+  "       [Macintosh] Ignore Macintosh-specific info.",
+  "  -K   [AtheOS, BeOS, Haiku, UNIX] Restore SUID/SGID/Tacky file attributes.",
   "  -L   Convert to lowercase any names from uppercase only file system.",
   "  -LL  Convert all files to lowercase.",
-  "  -M   Pipe all output through internal pager similar to Unix more(1).",
+  "  -M   Pipe all output through internal pager similar to UNIX more(1).",
   "  -n   Never overwrite existing files.  Skip extracting that file, no prompt.",
   "  -N   [Amiga] Extract file comments as Amiga filenotes.",
   "  -o   Overwrite existing files without prompting.  Useful with -f.  Use with",
@@ -2337,17 +2336,17 @@ static void help_extended(__G)
   "  -q   Perform operations quietly.  The more q (as in -qq) the quieter.",
   "  -s   [OS/2, NT, MS-DOS] Convert spaces in filenames to underscores.",
   "  -S   [VMS] Convert text files (-a, -aa) into Stream_LF format.",
-  "  -U   [UNICODE enabled] Show non-local characters as #Uxxxx or #Lxxxxxx ASCII",
+  "  -U   [UNICODE-enabled] Show non-local characters as #Uxxxx or #Lxxxxxx ASCII",
   "         text escapes where x is hex digit.  [Old] -U used to leave names",
   "         uppercase if created on MS-DOS, VMS, etc.  See -L.",
-  "  -UU  [UNICODE enabled] Disable use of stored UTF-8 paths.  Note that UTF-8",
+  "  -UU  [UNICODE-enabled] Disable use of stored UTF-8 paths.  Note that UTF-8",
   "         paths stored as native local paths are still processed as Unicode.",
   "  -V   Retain VMS file version numbers.",
   "  -W   [Only if WILD_STOP_AT_DIR] Modify pattern matching so ? and * do not",
   "         match directory separator /, but ** does.  Allows matching at specific",
   "         directory levels.",
-  "  -X   [VMS, Unix, OS/2, NT, Tandem] Restore UICs and ACL entries under VMS,",
-  "         or UIDs/GIDs under Unix, or ACLs under certain network-enabled",
+  "  -X   [VMS, UNIX, OS/2, NT, Tandem] Restore UICs and ACL entries under VMS,",
+  "         or UIDs/GIDs under UNIX, or ACLs under certain network-enabled",
   "         versions of OS/2, or security ACLs under Windows NT.  Can require",
   "         user privileges.",
   "  -XX  [NT] Extract NT security ACLs after trying to enable additional",
@@ -2360,7 +2359,7 @@ static void help_extended(__G)
   "         locations outside of current extraction root folder.  This allows",
   "         paths such as ../foo to be extracted above the current extraction",
   "         directory, which can be a security problem.",
-  "  -^   [Unix] Allow control characters in names of extracted entries.  Usually",
+  "  -^   [UNIX] Allow control characters in names of extracted entries.  Usually",
   "         this is not a good thing and should be avoided.",
   "  -2   [VMS] Force unconditional conversion of names to ODS-compatible names.",
   "         Default is to exploit destination file system, preserving cases and",
@@ -2409,12 +2408,12 @@ static void help_extended(__G)
   "zipinfo options (these are used in zipinfo mode (unzip -Z ...)):",
   "  -1  List names only, one per line.  No headers/trailers.  Good for scripts.",
   "  -2  List names only as -1, but include headers, trailers, and comments.",
-  "  -s  List archive entries in short Unix ls -l format.  Default list format.",
-  "  -m  List in long Unix ls -l format.  As -s, but includes compression %.",
-  "  -l  List in long Unix ls -l format.  As -m, but compression in bytes.",
+  "  -s  List archive entries in short UNIX ls -l format.  Default list format.",
+  "  -m  List in long UNIX ls -l format.  As -s, but includes compression %.",
+  "  -l  List in long UNIX ls -l format.  As -m, but compression in bytes.",
   "  -v  List zipfile information in verbose, multi-page format.",
   "  -h  List header line.  Includes archive name, actual size, total files.",
-  "  -M  Pipe all output through internal pager similar to Unix more(1) command.",
+  "  -M  Pipe all output through internal pager similar to UNIX more(1) command.",
   "  -t  List totals for files listed or for all files.  Includes uncompressed",
   "        and compressed sizes, and compression factors.",
   "  -T  Print file dates and times in a sortable decimal format (yymmdd.hhmmss)",
@@ -2441,8 +2440,8 @@ static void help_extended(__G)
   "unzipsfx self extractor:",
   "  Self-extracting archives made with unzipsfx are no more (or less)",
   "  portable across different operating systems than unzip executables.",
-  "  In general, a self-extracting archive made on a particular Unix system,",
-  "  for example, will only self-extract under the same flavor of Unix.",
+  "  In general, a self-extracting archive made on a particular UNIX system,",
+  "  for example, will only self-extract under the same flavor of UNIX.",
   "  Regular unzip may still be used to extract embedded archive however.",
   "",
   "unzipsfx command line:",

@@ -50,6 +50,21 @@
 #  endif
 #endif
 
+#ifdef __HAIKU__
+#include <fs_attr.h>
+#include <ByteOrder.h>
+#include <Mime.h>
+#define EB_BE_FL_BADBITS    0xfe    /* bits currently undefined */
+static uch *scanBeOSexfield  OF((const uch *ef_ptr, unsigned ef_len));
+static void setBeOSexfield   OF((const char *path, uch *extra_field));
+#ifdef BEOS_USE_PRINTEXFIELD
+static void printBeOSexfield OF((int isdir, uch *extra_field));
+#endif
+#ifdef BEOS_ASSIGN_FILETYPE
+static void assign_MIME( const char * );
+#endif
+#endif
+
 #ifdef _POSIX_VERSION
 #  ifndef DIRENT
 #    define DIRENT
@@ -648,6 +663,15 @@ int mapname(__G__ renamed)
                 Info(slide, 0, ((char *)slide, "   creating: %s\n",
                   FnFilter1(G.filename)));
             }
+#ifdef __HAIKU__
+            if (!uO.J_flag) {   /* Handle the BeOS extra field if present. */
+                void *ptr = scanBeOSexfield(G.extra_field,
+                                            G.lrec.extra_field_length);
+                if (ptr) {
+                    setBeOSexfield(G.filename, ptr);
+                }
+            }
+#endif
 #ifndef NO_CHMOD
             /* Filter out security-relevant attributes bits. */
             G.pInfo->file_attr = filtattr(__G__ G.pInfo->file_attr);
@@ -673,6 +697,17 @@ int mapname(__G__ renamed)
             /* set dir time (note trailing '/') */
             return (error & ~MPN_MASK) | MPN_CREATED_DIR;
         }
+#ifdef __HAIKU__
+        /* TODO: should we re-write the BeOS extra field data in case it's */
+        /* changed?  The answer is yes. [Sept 1999 - cjh]                  */
+        if (!uO.J_flag) {   /* Handle the BeOS extra field if present. */
+            void *ptr = scanBeOSexfield(G.extra_field,
+                                        G.lrec.extra_field_length);
+            if (ptr) {
+                setBeOSexfield(G.filename, ptr);
+            }
+        }
+#endif
         /* dir existed already; don't look for data to extract */
         return (error & ~MPN_MASK) | MPN_INF_SKIP;
     }
@@ -1170,15 +1205,27 @@ int close_outfile(__G)
 # else
         extent attribsize = 0;
 # endif
+        extent slnk_entrysize;
+        slinkentry *slnk_entry;
+#ifdef __HAIKU__
+		uch *BeOS_exfld;
+        if (!uO.J_flag) {
+            /* Symlinks can have attributes, too. */
+            BeOS_exfld = scanBeOSexfield(G.extra_field,
+                                         G.lrec.extra_field_length);
+            if (BeOS_exfld) {
+                attribsize = makeword(EB_LEN + BeOS_exfld) + EB_HEADSIZE;
+            }
+        }
+#endif
         /* size of the symlink entry is the sum of
          *  (struct size (includes 1st '\0') + 1 additional trailing '\0'),
          *  system specific attribute data size (might be 0),
          *  and the lengths of name and link target.
          */
-        extent slnk_entrysize = (sizeof(slinkentry) + 1) + attribsize +
+        slnk_entrysize = (sizeof(slinkentry) + 1) + attribsize +
                                 ucsize + strlen(G.filename);
-        slinkentry *slnk_entry;
-
+        
         if (slnk_entrysize < ucsize) {
             Info(slide, 0x201, ((char *)slide,
               "warning:  symbolic link (%s) failed: mem alloc overflow\n",
@@ -1198,15 +1245,19 @@ int close_outfile(__G)
         slnk_entry->targetlen = ucsize;
         slnk_entry->attriblen = attribsize;
 # ifdef SET_SYMLINK_ATTRIBS
-        memcpy(slnk_entry->buf, &(G.pInfo->file_attr),
+#ifdef __HAIKU__
+        if (attribsize > sizeof(unsigned))
+            memcpy(slnk_entry->buf, BeOS_exfld, attribsize);
+#else        
+            memcpy(slnk_entry->buf, &(G.pInfo->file_attr),
                sizeof(unsigned));
         if (have_uidgid_flg)
             memcpy(slnk_entry->buf + 4, z_uidgid, sizeof(z_uidgid));
+#endif
 # endif
         slnk_entry->target = slnk_entry->buf + slnk_entry->attriblen;
         slnk_entry->fname = slnk_entry->target + ucsize + 1;
         strcpy(slnk_entry->fname, G.filename);
-
         /* move back to the start of the file to re-read the "link data" */
         rewind(G.outfile);
 
@@ -1244,6 +1295,23 @@ int close_outfile(__G)
 
 #if (defined(NO_FCHOWN))
     errval = CloseError(G.outfile, G.filename);
+#endif
+
+#ifdef __HAIKU__
+    /* handle the BeOS extra field if present */
+    if (!uO.J_flag) {
+        void *ptr = scanBeOSexfield(G.extra_field,
+                                    G.lrec.extra_field_length);
+
+        if (ptr) {
+            setBeOSexfield(G.filename, ptr);
+#ifdef BEOS_ASSIGN_FILETYPE
+        } else {
+            /* Otherwise, ask the system to try assigning a MIME type. */
+            assign_MIME( G.filename );
+#endif
+        }
+    }
 #endif
 
     /* if -X option was specified and we have UID/GID info, restore it */
@@ -1309,7 +1377,7 @@ int close_outfile(__G)
     /* skip restoring time stamps on user's request */
     if (uO.D_flag <= 1) {
         /* set the file's access and modification times */
-        if (utime(G.filename, &(zt.t2))) {
+        if (utime(G.filename, (const struct utimbuf *)&(zt.t2))) {
             if (uO.qflag)
                 Info(slide, 0x201, ((char *)slide, CannotSetItemTimestamps,
                   FnFilter1(G.filename), strerror(errno)));
@@ -1349,6 +1417,11 @@ int set_symlnk_attribs(__G__ slnk_entry)
     ulg z_uidgid[2];
 
     if (slnk_entry->attriblen > 0) {
+#ifdef __HAIKU__
+      if (slnk_entry->attriblen > sizeof(unsigned)) {
+        setBeOSexfield(slnk_entry->fname, (uch *)slnk_entry->buf);
+      }
+#endif
 # if (!defined(NO_LCHOWN))
       if (slnk_entry->attriblen > sizeof(unsigned)) {
         ulg *z_uidgid_p = (zvoid *)(slnk_entry->buf + sizeof(unsigned));
@@ -1436,7 +1509,7 @@ int set_direc_attribs(__G__ d)
     /* Skip restoring directory time stamps on user' request. */
     if (uO.D_flag <= 0) {
         /* restore directory timestamps */
-        if (utime(d->fn, &UxAtt(d)->u.t2)) {
+        if (utime(d->fn, (const struct utimbuf *)&UxAtt(d)->u.t2)) {
             Info(slide, 0x201, ((char *)slide, CannotSetItemTimestamps,
               FnFilter1(d->fn), strerror(errno)));
             if (!errval)
@@ -1472,7 +1545,7 @@ int stamp_file(fname, modtime)
     ztimbuf tp;
 
     tp.modtime = tp.actime = modtime;
-    return (utime(fname, &tp));
+    return (utime(fname, (const struct utimbuf *)&tp));
 
 } /* end function stamp_file() */
 
@@ -1506,6 +1579,14 @@ void version(__G)
 #else
 #if (defined(CRAY) && defined(_RELEASE))
     char cc_versbuf[40];
+#else
+#if (defined(__MWERKS__) || defined(__PGI__) || defined(__WATCOMC__))
+    char cc_versbuf[25];
+#else
+#if (defined (sgi))
+	char cc_versbuf[17];
+#endif /* __TINYC__ || sgi */
+#endif /* __MWERKS__ || __PGI__ || __WATCOMC__ */
 #endif /* (CRAY && _RELEASE) */
 #endif /* __DECC_VER */
 #endif /* __HP_cc || __IBMC__ */
@@ -1523,6 +1604,17 @@ void version(__G)
     /* Pyramid, NeXT have problems with huge macro expansion, too:  no Info() */
     sprintf((char *)slide, LoadFarString(CompiledWith),
 
+#if defined(__clang__) /* Clang probably needs to come before gcc */
+#  if defined(__APPLE__)
+	  "Apple LLVM Compiler, ", __clang_patchlevel__,
+#  else
+#  if defined(__CODEGEARC__) /* RAD Studio with Clang is a UNIX build */
+	  "Embarcadero C++Builder, ", __clang_patchlevel__,
+#  else
+	  __clang_version__,
+#  endif /* Embarcadero */
+#  endif /* Apple */
+#else
 #ifdef __GNUC__
 #  ifdef NX_CURRENT_COMPILER_RELEASE
       (sprintf(cc_namebuf, "NeXT DevKit %d.%02d ",
@@ -1531,11 +1623,19 @@ void version(__G)
       (strlen(__VERSION__) > 8)? "(gcc)" :
         (sprintf(cc_versbuf, "(gcc %s)", __VERSION__), cc_versbuf),
 #  else
+#  if defined __MINGW32__
+#	if defined __MINGW64__
+	  "MinGW-w64/gcc ", __VERSION__,
+#	else
+	  "mingw32/gcc ", __VERSION__,
+#	endif
+#  else
       "gcc ", __VERSION__,
-#  endif
+#  endif /* mingw32 */
+#  endif /* NeXT DevKit */
 #else
 #if defined(__SUNPRO_C)
-      "Sun C ", (sprintf(cc_versbuf, "version %x", __SUNPRO_C), cc_versbuf),
+      "SunPro C ", (sprintf(cc_versbuf, "version %x", __SUNPRO_C), cc_versbuf),
 #else
 #if (defined(__HP_cc))
       "HP C ",
@@ -1547,13 +1647,26 @@ void version(__G)
       cc_versbuf),
 #else
 #if (defined(__DECC_VER))
-      "DEC C ",
+      "Compaq C ",
       (sprintf(cc_versbuf, "%c%d.%d-%03d",
                ((cc_verstyp = (__DECC_VER / 10000) % 10) == 6 ? 'T' :
                 (cc_verstyp == 8 ? 'S' : 'V')),
                __DECC_VER / 10000000,
                (__DECC_VER % 10000000) / 100000, __DECC_VER % 1000),
                cc_versbuf),
+#else
+#if (defined(sgi))
+      "MIPSpro ",
+#  if defined(_COMPILER_VERSION)
+	  (sprintf(cc_versbuf, "%d.%d.%d", _COMPILER_VERSION / 100,
+              (_COMPILER_VERSION % 100) / 10, _COMPILER_VERSION % 10),
+			  cc_versbuf),
+#  else
+#  if defined(_SGI_COMPILER_VERSION
+	  (sprintf(cc_versbuf, "%d.%d.%d", _SGI_COMPILER_VERSION / 100,
+              (_SGI_COMPILER_VERSION % 100) / 10, _SGI_COMPILER_VERSION % 10),
+			  cc_versbuf),
+#  endif
 #else
 #if defined(CRAY) && defined(_RELEASE)
       "cc ", (sprintf(cc_versbuf, "version %d", _RELEASE), cc_versbuf),
@@ -1563,6 +1676,24 @@ void version(__G)
       (sprintf(cc_versbuf, "version %d.%d.%d",
                (__IBMC__ / 100), ((__IBMC__ / 10) % 10), (__IBMC__ % 10)),
                cc_versbuf),
+#else
+#if defined(__MWERKS__)
+	  "CodeWarrior C ",
+      (sprintf(cc_versbuf, "%d.%d.%d", 
+			   (__MWERKS_VERSION__ >> 12) & 0xF,
+			   (__MWERKS_VERSION__ >> 8) & 0xF, 
+			   (__MWERKS_VERSION__ >> 4) & 0xF), cc_versbuf),
+#else
+#if defined(__PGI)
+	  "PGI C ", 
+	  (sprintf(cc_versbuf, "%d.%d.%d", 
+			   __PGIC__, __PGIC_MINOR__, __PGIC_PATCHLEVEL__), cc_versbuf),
+#else
+#if defined(__WATCOMC__)
+      "Open Watcom C ",
+	  (sprintf(cc_versbuf, "%d.%d", 
+			   (__WATCOMC__ / 100) - 11, (__WATCOMC__ % 100) / 10),
+			   cc_versbuf),
 #else
 #ifdef __VERSION__
 #   ifndef IZ_CC_NAME
@@ -1575,12 +1706,17 @@ void version(__G)
 #   endif
       IZ_CC_NAME, "",
 #endif /* ?__VERSION__ */
+#endif /* ?__WATCOMC__ */
+#endif /* ?__PGI__ */
+#endif /* ?__MWERKS__ */
 #endif /* ?__IBMC__ */
 #endif /* ?(CRAY && _RELEASE) */
+#endif /* sgi */
 #endif /* ?__DECC_VER */
 #endif /* ?__HP_cc */
 #endif /* ?__SUNPRO_C */
 #endif /* ?__GNUC__ */
+#endif /* ?__Clang__ */
 
 #ifndef IZ_OS_NAME
 #  define IZ_OS_NAME "Unix"
@@ -1590,30 +1726,65 @@ void version(__G)
 #if defined(sgi) || defined(__sgi)
       " (Silicon Graphics IRIX)",
 #else
+#if defined(__illumos__)
+#  ifdef(__x86_64__)
+      " (illumos/AMD64)",
+#  else
+#  if defined(sparc)
+	  " (illumos/SPARC)",
+#  else
+#  if defined(__aarch64__)
+	  " (illumos/Raspberry Pi)",
+#  else
+#  if defined(i386)
+	  " (illumos/Intel)",
+#  else
+      " (illumos/Exotic)",
+#  endif /* Intel */
+#  endif /* RPi */
+#  endif /* SPARC */
+#  endif /* AMD64 */
+#else
 #ifdef sun
-#  ifdef sparc
+#  ifdef(__x86_64__) 
+      " (Oracle Solaris/AMD64)",
+#  else
+#  if defined(sparc)
 #    ifdef __SVR4
-      " (Sun SPARC/Solaris)",
+#		ifdef _LP64
+		 " (Sun UltraSPARC/Solaris)",
+#		else
+		 " (Sun SPARC/Solaris)",
+#		endif
 #    else /* may or may not be SunOS */
       " (Sun SPARC)",
 #    endif
 #  else
 #  if defined(sun386) || defined(i386)
+#    ifdef __SVR4
+	  " (Sun Solaris/Intel)",
+#    else
       " (Sun 386i)",
+#	 endif
 #  else
 #  if defined(mc68020) || defined(__mc68020__)
       " (Sun 3)",
 #  else /* mc68010 or mc68000:  Sun 2 or earlier */
       " (Sun 2)",
-#  endif
-#  endif
-#  endif
+#  endif /* mc68020 */
+#  endif /* sun386 */
+#  endif /* sparc */
+#  endif /* x86_64 */
 #else
 #ifdef __hpux
-      " (HP-UX)",
+#  ifdef __ia64
+      " (HP-UX/Itanium)",
+#  else
+	  " (HP-UX)",
+#  endif
 #else
 #ifdef __osf__
-      " (DEC OSF/1)",
+      " (Compaq Tru64 UNIX)",
 #else
 #ifdef _AIX
       " (IBM AIX)",
@@ -1635,24 +1806,51 @@ void version(__G)
 #  ifdef mc68000
       " (NeXTStep/black)",
 #  else
+#  ifdef i386
       " (NeXTStep for Intel)",
-#  endif
+#  else
+#  ifdef hppa
+	  " (NeXTStep for HP)",
+#  else
+#  ifdef sparc
+	  " (NeXTStep for SPARC)",
+#  else
+#  ifdef ppc
+	  " (Apple Rhapsody for PowerPC)",
+#  else
+	  " (Some kinda NeXT, somehow)", 
+#  endif /* ppc */
+#  endif /* sparc */
+#  endif /* hppa */
+#  endif /* i386 */
+#  endif /* mc68000 */
 #else              /* the next dozen or so are somewhat order-dependent */
 #ifdef LINUX
+#  ifdef __ANDROID__
+	  " (Android)",
+#  else
 #  ifdef __ELF__
       " (Linux ELF)",
 #  else
       " (Linux a.out)",
 #  endif
+#  endif
 #else
 #ifdef MINIX
       " (Minix)",
 #else
+#ifdef _UNIXWARE
+	  " (SCO UnixWare),"
+#else
 #ifdef M_UNIX
-      " (SCO Unix)",
+      " (SCO UNIX)",
 #else
 #ifdef M_XENIX
-      " (SCO Xenix)",
+#  ifdef _SCO_DS
+	  " (SCO OpenServer)",
+#  else
+      " (Xenix)",
+#  endif
 #else
 #ifdef __NetBSD__
 #  ifdef NetBSD0_8
@@ -1673,7 +1871,11 @@ void version(__G)
 #  endif
 #else
 #ifdef __FreeBSD__
+#  if defined (sco) || defined(_UNIXWARE)
+	  " (Xinuos OpenServer/BSD)",
+#  else
       (BSD4_4 == 0.5)? " (FreeBSD 1.x)" : " (FreeBSD 2.0 or later)",
+#  endif
 #else
 #ifdef __bsdi__
       (BSD4_4 == 0.5)? " (BSD/386 1.0)" : " (BSD/386 1.1 or later)",
@@ -1681,14 +1883,20 @@ void version(__G)
 #ifdef __386BSD__
       (BSD4_4 == 1)? " (386BSD, post-4.4 release)" : " (386BSD)",
 #else
+#ifdef __OpenBSD__
+      " (OpenBSD)",
+#else
+#ifdef __DragonFly__
+      " (DragonFly BSD)",
+#else
 #ifdef __CYGWIN__
       " (Cygwin)",
 #else
 #if defined(i686) || defined(__i686) || defined(__i686__)
-      " (Intel 686)",
+      " (Intel Pentium Pro+)",
 #else
 #if defined(i586) || defined(__i586) || defined(__i586__)
-      " (Intel 586)",
+      " (Intel Pentium)",
 #else
 #if defined(i486) || defined(__i486) || defined(__i486__)
       " (Intel 486)",
@@ -1701,12 +1909,12 @@ void version(__G)
 #else
 #ifdef ultrix
 #  ifdef mips
-      " (DEC/MIPS)",
+      " (Digital ULTRIX/MIPS)",
 #  else
 #  ifdef vax
-      " (DEC/VAX)",
+      " (Digital ULTRIX/VAX)",
 #  else /* __alpha? */
-      " (DEC/Alpha)",
+      " (Digital ULTRIX/Alpha)",
 #  endif
 #  endif
 #else
@@ -1730,20 +1938,29 @@ void version(__G)
 #else
 #ifdef __APPLE__
 #  ifdef __i386__
-      " Mac OS X Intel i32",
+      " (Mac OS X on Intel)",
+#  else
+#  ifdef __x86_64__
+      " (macOS on 64-bit Intel)",
+#  else
+#  ifdef __aarch64__
+      " (macOS on Apple Silicon)",
 #  else
 #  ifdef __ppc__
-      " Mac OS X PowerPC",
+      " (Mac OS X on PowerPC)",
 #  else
 #  ifdef __ppc64__
-      " Mac OS X PowerPC64",
+      " (Mac OS X on 64-bit PowerPC)",
 #  else
-      " Mac OS X",
+      " (A very strange Apple, indeed)",
 #  endif /* __ppc64__ */
 #  endif /* __ppc__ */
+#  endif /* __aarch64__ */
+#  endif /* __x86_64__ */
 #  endif /* __i386__ */
 #else
       "",
+#endif /* Android */
 #endif /* Apple */
 #endif /* Lynx */
 #endif /* QNX Neutrino */
@@ -1758,12 +1975,15 @@ void version(__G)
 #endif /* 586 */
 #endif /* 686 */
 #endif /* Cygwin */
+#endif /* DragonFly */
+#endif /* OpenBSD */
 #endif /* 386BSD */
 #endif /* BSDI BSD/386 */
 #endif /* NetBSD */
 #endif /* FreeBSD */
 #endif /* SCO Xenix */
 #endif /* SCO Unix */
+#endif /* SCO UnixWare */
 #endif /* Minix */
 #endif /* Linux */
 #endif /* NeXT */
@@ -1946,6 +2166,284 @@ static void qlfix(__G__ ef_ptr, ef_len)
 }
 #endif /* QLZIP */
 
+#ifdef __HAIKU__
+
+/******************************/
+/* Extra field functions      */
+/******************************/
+
+/*
+** Scan the extra fields in extra_field, and look for a BeOS EF; return a
+** pointer to that EF, or NULL if it's not there.
+*/
+static uch *scanBeOSexfield(const uch *ef_ptr, unsigned ef_len)
+{
+    while( ef_ptr != NULL && ef_len >= EB_HEADSIZE ) {
+        unsigned eb_id  = makeword(EB_ID + ef_ptr);
+        unsigned eb_len = makeword(EB_LEN + ef_ptr);
+
+        if (eb_len > (ef_len - EB_HEADSIZE)) {
+            Trace((stderr,
+              "scanBeOSexfield: block length %u > rest ef_size %u\n", eb_len,
+              ef_len - EB_HEADSIZE));
+            break;
+        }
+
+        if (eb_id == EF_BEOS && eb_len >= EB_BEOS_HLEN) {
+            return (uch *)ef_ptr;
+        }
+
+        ef_ptr += (eb_len + EB_HEADSIZE);
+        ef_len -= (eb_len + EB_HEADSIZE);
+    }
+
+    return NULL;
+}
+
+/* Used by setBeOSexfield():
+
+Set a file/directory's attributes to the attributes passed in.
+
+If set_file_attrs() fails, an error will be returned:
+
+     EOK - no errors occurred
+
+(other values will be whatever the failed function returned; no docs
+yet, or I'd list a few)
+*/
+static int set_file_attrs( const char *name,
+                           const unsigned char *attr_buff,
+                           const off_t total_attr_size )
+{
+    int                  retval = EOK;
+    unsigned char       *ptr;
+    const unsigned char *guard;
+    int                  fd;
+
+    ptr   = (unsigned char *)attr_buff;
+    guard = ptr + total_attr_size;
+
+    fd = open(name, O_RDONLY | O_NOTRAVERSE);
+    if (fd < 0) {
+        return errno; /* should it be -fd ? */
+    }
+
+    while (ptr < guard) {
+        ssize_t				wrote_bytes;
+        const char          *attr_name;
+        unsigned char       *attr_data;
+		uint32              attr_type;
+        int64				attr_size;
+
+        attr_name  = (char *)&(ptr[0]);
+        ptr       += strlen(attr_name) + 1;
+
+        /* The attr_info data is stored in big-endian format because the */
+        /* PowerPC port was here first.                                  */
+        memcpy(&attr_type, ptr, 4); ptr += 4;
+        memcpy(&attr_size, ptr, 8); ptr += 8;
+        attr_type = (uint32)B_BENDIAN_TO_HOST_INT32( attr_type );
+        attr_size = (off_t)B_BENDIAN_TO_HOST_INT64( attr_size );
+
+        if (attr_size < 0LL) {
+            Info(slide, 0x201, ((char *)slide,
+                 "warning: skipping attribute with invalid length (%Ld)\n",
+                 attr_size));
+            break;
+        }
+
+        attr_data  = ptr;
+        ptr       += attr_size;
+
+        if (ptr > guard) {
+            /* We've got a truncated attribute. */
+            Info(slide, 0x201, ((char *)slide,
+                 "warning: truncated attribute\n"));
+            break;
+        }
+
+        /* Wave the magic wand... this will swap Be-known types properly. */
+        (void)swap_data( attr_type, attr_data, attr_size,
+                         B_SWAP_BENDIAN_TO_HOST );
+
+        wrote_bytes = fs_write_attr(fd, attr_name, attr_type, 0,
+                                    attr_data, attr_size);
+        if (wrote_bytes != attr_size) {
+            Info(slide, 0x201, ((char *)slide,
+                 "warning: wrote %ld attribute bytes of %ld\n",
+                 (unsigned long)wrote_bytes,(unsigned long)attr_size));
+        }
+    }
+
+    close(fd);
+
+    return retval;
+}
+
+static void setBeOSexfield(const char *path, uch *extra_field)
+{
+    uch *ptr       = extra_field;
+    ush  id        = 0;
+    ush  size      = 0;
+    ulg  full_size = 0;
+    uch  flags     = 0;
+    uch *attrbuff  = NULL;
+    int retval;
+
+    if( extra_field == NULL ) {
+        return;
+    }
+
+    /* Collect the data from the extra field buffer. */
+    id        = makeword(ptr);    ptr += 2;   /* we don't use this... */
+    size      = makeword(ptr);    ptr += 2;
+    full_size = makelong(ptr);    ptr += 4;
+    flags     = *ptr;             ptr++;
+
+    /* Do a little sanity checking. */
+    if (flags & EB_BE_FL_BADBITS) {
+        /* corrupted or unsupported */
+        Info(slide, 0x201, ((char *)slide,
+          "Unsupported flags set for this BeOS extra field, skipping.\n"));
+        return;
+    }
+    if (size <= EB_BEOS_HLEN) {
+        /* corrupted, unsupported, or truncated */
+        Info(slide, 0x201, ((char *)slide,
+             "BeOS extra field is %d bytes, should be at least %d.\n", size,
+             EB_BEOS_HLEN));
+        return;
+    }
+    if (full_size < (size - EB_BEOS_HLEN)) {
+        /* possible old archive? will this screw up on valid archives? */
+        Info(slide, 0x201, ((char *)slide,
+             "Skipping attributes: BeOS extra field is %d bytes, "
+             "data size is %ld.\n", size - EB_BEOS_HLEN, full_size));
+        return;
+    }
+
+    /* Find the BeOS file attribute data. */
+    if (flags & EB_BE_FL_UNCMPR) {
+        /* Uncompressed data */
+        attrbuff = ptr;
+    } else {
+        /* Compressed data */
+        attrbuff = (uch *)malloc( full_size );
+        if (attrbuff == NULL) {
+            /* No memory to uncompress attributes */
+            Info(slide, 0x201, ((char *)slide,
+                 "Can't allocate memory to uncompress file attributes.\n"));
+            return;
+        }
+
+        retval = memextract(__G__ attrbuff, full_size,
+                            ptr, size - EB_BEOS_HLEN);
+        if( retval != PK_OK ) {
+            /* error uncompressing attributes */
+            Info(slide, 0x201, ((char *)slide,
+                 "Error uncompressing file attributes.\n"));
+
+            /* Some errors here might not be so bad; we should expect */
+            /* some truncated data, for example.  If the data was     */
+            /* corrupt, we should _not_ attempt to restore the attrs  */
+            /* for this file... there's no way to detect what attrs   */
+            /* are good and which are bad.                            */
+            free (attrbuff);
+            return;
+        }
+    }
+
+    /* Now attempt to set the file attributes on the extracted file. */
+    retval = set_file_attrs(path, attrbuff, (off_t)full_size);
+    if (retval != EOK) {
+        Info(slide, 0x201, ((char *)slide,
+             "Error writing file attributes.\n"));
+    }
+
+    /* Clean up, if necessary */
+    if (attrbuff != ptr) {
+        free(attrbuff);
+    }
+
+    return;
+}
+
+#ifdef BEOS_USE_PRINTEXFIELD
+static void printBeOSexfield( int isdir, uch *extra_field )
+{
+    uch *ptr       = extra_field;
+    ush  id        = 0;
+    ush  size      = 0;
+    ulg  full_size = 0;
+    uch  flags     = 0;
+
+    /* Tell picky compilers to be quiet. */
+    isdir = isdir;
+
+    if( extra_field == NULL ) {
+        return;
+    }
+
+    /* Collect the data from the buffer. */
+    id        = makeword( ptr );    ptr += 2;
+    size      = makeword( ptr );    ptr += 2;
+    full_size = makelong( ptr );    ptr += 4;
+    flags     = *ptr;               ptr++;
+
+    if( id != EF_BEOS ) {
+        /* not a 'Be' field */
+        printf("\t*** Unknown field type (0x%04x, '%c%c')\n", id,
+               (char)(id >> 8), (char)id);
+    }
+
+    if( flags & EB_BE_FL_BADBITS ) {
+        /* corrupted or unsupported */
+        printf("\t*** Corrupted BeOS extra field:\n");
+        printf("\t*** unknown bits set in the flags\n");
+        printf("\t*** (Possibly created by an old version of zip for BeOS.\n");
+    }
+
+    if( size <= EB_BEOS_HLEN ) {
+        /* corrupted, unsupported, or truncated */
+        printf("\t*** Corrupted BeOS extra field:\n");
+        printf("\t*** size is %d, should be larger than %d\n", size,
+               EB_BEOS_HLEN );
+    }
+
+    if( flags & EB_BE_FL_UNCMPR ) {
+        /* Uncompressed data */
+        printf("\tBeOS extra field data (uncompressed):\n");
+        printf("\t\t%ld data bytes\n", full_size);
+    } else {
+        /* Compressed data */
+        printf("\tBeOS extra field data (compressed):\n");
+        printf("\t\t%d compressed bytes\n", size - EB_BEOS_HLEN);
+        printf("\t\t%ld uncompressed bytes\n", full_size);
+    }
+}
+#endif
+
+#ifdef BEOS_ASSIGN_FILETYPE
+/* Note: This will no longer be necessary in BeOS PR4; update_mime_info()    */
+/* will be updated to build its own absolute pathname if it's not given one. */
+static void assign_MIME( const char *file )
+{
+    char *fullname;
+    char buff[PATH_MAX], cwd_buff[PATH_MAX];
+    int retval;
+
+    if( file[0] == '/' ) {
+        fullname = (char *)file;
+    } else {
+        sprintf( buff, "%s/%s", getcwd( cwd_buff, PATH_MAX ), file );
+        fullname = buff;
+    }
+
+    retval = update_mime_info( fullname, FALSE, TRUE, TRUE );
+}
+#endif
+
+#endif /* __HAIKU__ */
 
 typedef struct {
     char *local_charset;

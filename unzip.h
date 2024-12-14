@@ -496,7 +496,7 @@ typedef struct _UzpOpts {
 #endif
     int jflag;          /* -j: junk pathnames (unzip) */
 #if (defined(__ATHEOS__) || defined(__BEOS__) || defined(MACOS) || \
- (defined( UNIX) && defined( __APPLE__)))
+ (defined( UNIX) && defined( __APPLE__)) || defined(__HAIKU__))
     int J_flag;         /* -J: ignore AtheOS/BeOS/MacOS e. f. info (unzip) */
 #endif
 #if (defined(__ATHEOS__) || defined(__BEOS__) || defined(UNIX))
