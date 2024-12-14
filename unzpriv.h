@@ -387,6 +387,7 @@
 #  include <fcntl.h>          /* O_BINARY for open() w/o CR/LF translation */
 
 #  ifdef OS2                  /* defined for all OS/2 compilers */
+#    define SYMLINKS
 #    include "os2/os2cfg.h"
 #  else
 #    ifdef FLEXOS
@@ -599,6 +600,12 @@
 #  include "wince/wcecfg.h"
 #endif
 
+/*---------------------------------------------------------------------------
+    OS/2 section:
+  ---------------------------------------------------------------------------*/
+#ifdef OS2
+#  include "os2/os2cfg.h"
+#endif
 
 
 /* ----------------------------------------------------------------------------
@@ -1495,6 +1502,22 @@
 #   endif
 
 # endif /* WIN32 */
+
+#if defined(OS2)
+#if defined(__KLIBC__) 
+#   define zstat stat
+#   define zfstat fstat
+#   define zlstat lstat
+     /* 64-bit fseeko */
+#   define zfseeko fseeko
+#   define zlseek lseek
+     /* 64-bit ftello */
+#   define zftello ftello
+    /* 64-bit fopen */
+#   define zfopen fopen
+#   define zfdopen fdopen
+#endif
+#endif /* OS2 */
 
 #else
   /* No Large File Support */
@@ -2630,7 +2653,7 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
    int screenlinewrap    OF((void));                                /* local */
 # endif
 #endif /* MORE && (ATH_BEO_UNX || QDOS || VMS) */
-#ifdef OS2_W32
+#if defined(OS2_W32) && !defined(__KLIBC__)
    int   SetFileSize     OF((FILE *file, zusz_t filesize));         /* local */
 #endif
 #ifndef MTS /* macro in MTS */
