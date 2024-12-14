@@ -495,7 +495,8 @@ typedef struct _UzpOpts {
     int scanimage;      /* -I: scan image files */
 #endif
     int jflag;          /* -j: junk pathnames (unzip) */
-#if (defined(__ATHEOS__) || defined(__BEOS__) || defined(MACOS))
+#if (defined(__ATHEOS__) || defined(__BEOS__) || defined(MACOS) || \
+ (defined( UNIX) && defined( __APPLE__)))
     int J_flag;         /* -J: ignore AtheOS/BeOS/MacOS e. f. info (unzip) */
 #endif
 #if (defined(__ATHEOS__) || defined(__BEOS__) || defined(UNIX))

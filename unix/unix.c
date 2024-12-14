@@ -75,6 +75,12 @@
 #  endif
 #endif /* ?DIRENT */
 
+#if defined( UNIX) && defined( __APPLE__)
+#  include <sys/attr.h>
+#  include <sys/mount.h>
+#  include <sys/vnode.h>
+#endif /* defined( UNIX) && defined( __APPLE__) */
+
 #ifdef SET_DIR_ATTRIB
 typedef struct uxdirattr {      /* struct for holding unix style directory */
     struct uxdirattr *next;     /*  info until can be sorted and set at end */
@@ -1271,12 +1277,34 @@ int close_outfile(__G)
     Change the file permissions from default ones to those stored in the
     zipfile.
   ---------------------------------------------------------------------------*/
+  
+# if defined( UNIX) && defined( __APPLE__)
+    /* 2009-04-19 SMS.
+     * Skip fchmod() for an AppleDouble file.  (Doing the normal file
+     * is enough, and fchmod() will fail on a "/rsrc" pseudo-file.)
+     */
+    if (!G.apple_double)
+    {
+# endif /* defined( UNIX) && defined( __APPLE__) */
 
     if (fchmod(fileno(G.outfile), filtattr(__G__ G.pInfo->file_attr)))
         perror("fchmod (file attributes) error");
 
+# if defined( UNIX) && defined( __APPLE__)
+    }
+# endif /* defined( UNIX) && defined( __APPLE__) */
+
     errval = CloseError(G.outfile, G.filename);
 #endif /* !NO_FCHOWN && !NO_FCHMOD */
+
+# if defined( UNIX) && defined( __APPLE__)
+    /* 2009-04-19 SMS.
+     * Skip utime() for an AppleDouble file.  (Doing the normal file
+     * is enough, and utime() will fail on a "/rsrc" pseudo-file.)
+     */
+    if (!G.apple_double)
+    {
+# endif /* defined( UNIX) && defined( __APPLE__) */
 
     /* skip restoring time stamps on user's request */
     if (uO.D_flag <= 1) {
@@ -1290,6 +1318,10 @@ int close_outfile(__G)
                   strerror(errno)));
         }
     }
+
+# if defined( UNIX) && defined( __APPLE__)
+    }
+# endif /* defined( UNIX) && defined( __APPLE__) */
 
 #if (defined(NO_FCHOWN) || defined(NO_FCHMOD))
 /*---------------------------------------------------------------------------
@@ -1314,6 +1346,8 @@ int set_symlnk_attribs(__G__ slnk_entry)
     __GDEF
     slinkentry *slnk_entry;
 {
+    ulg z_uidgid[2];
+
     if (slnk_entry->attriblen > 0) {
 # if (!defined(NO_LCHOWN))
       if (slnk_entry->attriblen > sizeof(unsigned)) {

@@ -1,0 +1,20 @@
+                                                20 April 2009.  SMS.
+
+            Experimental Mac OS X patch kit for UnZip 6.0
+            ---------------------------------------------
+
+   Unpack an UnZip 6.0 kit.
+
+      unzip unzip60.zip
+or:
+      gzip -dc unzip60.tar.gz | tar xf -
+
+   Apply the patches.  Original files will be saved as "*_orig".
+
+      cd unzip60
+      patch -i ../unzip60_mac.diff -p1 -b -z _orig
+
+   Build as usual.  (Add options as desired.)
+
+      make -f unix/Makefile generic
+
