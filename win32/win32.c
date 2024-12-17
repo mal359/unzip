@@ -2695,9 +2695,9 @@ void version(__G)
 	  (sprintf(buf, "Digital Mars C/C++ %d.%d", __DMC__ >> 8, 
 		(__DMC__ & 0xF0) >> 4), buf);
 #  else
-	  (sprintf(buf, "Zortech C++ %d.%d", (__ZTC__ >> 8), (__ZTC__ & 0xFF), buf),
+	  (sprintf(buf, "Symantec C++ %d.%d", (__SC__ >> 8), (__SC__ & 0xFF), buf),
 #  endif
-#else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__GNUC__ */
+#else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__GNUC__, !__SC__*/
       "unknown compiler (SDK?)", "",
 #endif /* ?compilers */
 #ifdef _WIN64
