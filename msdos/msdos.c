@@ -1901,8 +1901,10 @@ void version(__G)
         " 4.5",
 #    elif (__BORLANDC__ == 0x0500)
         " 5.0",
+#    elif (__BORLANDC__ == 0x0520)
+        " 5.2",
 #    else
-        " later than 5.0",
+        " later than 5.2 (for DOS? likely story...)",
 #    endif
 #  else
       "Turbo C",
