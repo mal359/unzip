@@ -1944,10 +1944,11 @@ void version(__G)
 #    endif
 #  endif
 #elif defined(__ZTC__)
-	  "Zortech C++", (sprintf(buf, "%d.%d", (__ZTC__ >> 8), (__ZTC__ & 0xFF), buf),
 #  if defined(__SC__)
 	  "Symantec C++", (sprintf(buf, "%d.%d", __SC__ >> 8, 
 		((__SC__ & 0xFF) == 0x32 ? 0 : __SC__ & 0xFF), buf),
+#  else
+	  "Zortech C++", (sprintf(buf, "%d.%d", (__ZTC__ >> 8), (__ZTC__ & 0xFF), buf),
 #  endif
 #else
       "unknown compiler", "",
