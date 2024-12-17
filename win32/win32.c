@@ -2608,7 +2608,7 @@ void version(__G)
 #	elif (__CODEGEARC__ == 0x0690)
 	  "Embarcadero C++ 6.90 (C++Builder XE7)",
 #	elif (__CODEGEARC__ == 0x0700)
-	  "Embarcadero C++ 7.0 (C++Builder XE8)",
+	  "Embarcadero C++ 7.00 (C++Builder XE8)",
 #	elif (__CODEGEARC__ == 0x0710)
 	  "Embarcadero C++ 7.10 (C++Builder Seattle)",
 #	elif (__CODEGEARC__ == 0x0711)
