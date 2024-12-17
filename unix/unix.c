@@ -1690,7 +1690,7 @@ void version(__G)
 			   __PGIC__, __PGIC_MINOR__, __PGIC_PATCHLEVEL__), cc_versbuf),
 #else
 #if defined(__WATCOMC__)
-      "Open Watcom C ",
+      "Open Watcom C/C++ ",
 	  (sprintf(cc_versbuf, "%d.%d", 
 			   (__WATCOMC__ / 100) - 11, (__WATCOMC__ % 100) / 10),
 			   cc_versbuf),
