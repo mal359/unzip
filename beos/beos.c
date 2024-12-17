@@ -1238,7 +1238,7 @@ void version(__G)
 #if defined(__MWERKS__)
       "Metrowerks CodeWarrior", "",
 #elif defined(__GNUC__)
-      "GNU C ", __VERSION__,
+      "gcc ", __VERSION__,
 #else
       "(unknown compiler) ","",
 #endif

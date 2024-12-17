@@ -969,8 +969,12 @@ void version(__G)
 #ifdef __GNUC__
       "gcc ", __VERSION__,
 #else
+#  ifdef __CC_ARM
+      "Acorn C/C++ ", printf("%d.%d", ARMCC_VERSION / 100000, 
+		(ARMCC_VERSION  % 100000) / 10000),
+#  else
 #  ifdef __CC_NORCROFT
-      "Norcroft ", "cc",
+      "Norcroft ", "C Compiler",
 #  else
       "cc", "",
 #  endif

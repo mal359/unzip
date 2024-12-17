@@ -5562,6 +5562,9 @@ void version(__G)
 
     len = sprintf((char *)slide, LoadFarString(CompiledWith),
 
+#ifdef __clang__
+      "Clang/LLVM ", __VERSION__,
+#else
 #ifdef __GNUC__
       "gcc ", __VERSION__,
 #else
@@ -5583,6 +5586,7 @@ void version(__G)
       "unknown compiler", "",
 #    endif
 #  endif
+#endif
 #endif
 
 #ifdef VMS_VERSION

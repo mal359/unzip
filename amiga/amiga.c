@@ -976,8 +976,20 @@ void version(__G)
 #  else
 #   ifdef AZTEC_C
      strcpy(buf1,"Manx Aztec C ");
-#   else
-     strcpy(buf1,"UNKNOWN ");
+#  	else
+#    ifdef __GNUC__
+      strcpy(buf1,"GNU C ");
+#  	  else
+#      ifdef __VBCC__
+        strcpy(buf1,"VBCC ");
+#  	   else
+#       ifdef __STORM__
+         strcpy(buf1,"StormC ");
+#      else
+         strcpy(buf1,"UNKNOWN ");
+#      endif
+#     endif
+#    endif
 #   endif
 #  endif
 # endif

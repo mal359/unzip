@@ -840,7 +840,17 @@ void version(__G)
       "gcc/2 ", __VERSION__,
 #  endif
 #elif defined(__WATCOMC__)
-      "Watcom C", (sprintf(buf, " (__WATCOMC__ = %d)", __WATCOMC__), buf),
+#  if (__WATCOMC__ >= 1200)
+      (sprintf(buf, "Open Watcom C/C++ %d.%d", (__WATCOMC__ / 100) - 11,
+	   (__WATCOMC__ % 100) / 10), buf), "",
+#  else
+#  if (__WATCOMC__ % 10 > 0)
+      (sprintf(buf, "Watcom C/C++ %d.%02d", __WATCOMC__ / 100,
+       __WATCOMC__ % 100), buf), "",
+#  else
+	  (sprintf(buf, "Watcom C/C++ %d.%d", __WATCOMC__ / 100,
+       (__WATCOMC__ % 100) / 10), buf), "",
+#  endif
 #elif defined(__TURBOC__)
 #  ifdef __BORLANDC__
       "Borland C++",

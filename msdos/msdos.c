@@ -1863,7 +1863,7 @@ void version(__G)
 #  elif defined(__EMX__)          /* ...so is __EMX__ (double sigh) */
       "emx+gcc ",
 #  else
-      "gcc ",
+      "GNU C ",
 #  endif
       __VERSION__,
 #elif defined(__WATCOMC__)

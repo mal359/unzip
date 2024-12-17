@@ -1608,10 +1608,10 @@ void version(__G)
 #  if defined(__APPLE__)
 	  "Apple LLVM Compiler, ", __clang_patchlevel__,
 #  else
-#  if defined(__CODEGEARC__) /* RAD Studio with Clang is a UNIX build */
-	  "Embarcadero C++Builder, ", __clang_patchlevel__,
+#  if defined(__CODEGEARC__) /* RAD Studio with BCC64X is a UNIX build */
+	  "Embarcadero C++, ", __clang_patchlevel__,
 #  else
-	  __clang_version__,
+	  "Clang/LLVM ", __VERSION__,
 #  endif /* Embarcadero */
 #  endif /* Apple */
 #else

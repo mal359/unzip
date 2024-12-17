@@ -984,13 +984,20 @@ void version(__G)
     sprintf((char *)slide, LoadFarString(CompiledWith),
 
 #ifdef __GNUC__
-      "gcc ", __VERSION__,
-#else
+      "GNU C ", __VERSION__,
+#  else
+#  ifdef LATTICE
+	  "Lattice C", 
+#  else
 #  if 0
       "cc ", (sprintf(buf, " version %d", _RELEASE), buf),
 #  else
 #  ifdef __TURBOC__
+#    ifdef __PUREC__
+      "Pure C", (sprintf(buf, " (0x%04x = %d)", __PUREC__, __PUREC__), buf),
+#    else
       "Turbo C", (sprintf(buf, " (0x%04x = %d)", __TURBOC__, __TURBOC__), buf),
+#    endif
 #  else
       "unknown compiler", "",
 #  endif

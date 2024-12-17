@@ -2572,7 +2572,6 @@ void version(__G)
 	  (sprintf(buf, "Watcom C/C++ %d.%d", __WATCOMC__ / 100,
        (__WATCOMC__ % 100) / 10), buf), "",
 #  endif
-#  endif
 #elif defined(__BORLANDC__)
 #  if defined(__CODEGEARC__) /* Ripped from Embarcadero's documentation */
 #	if (__CODEGEARC__ == 0x0590)
@@ -2665,6 +2664,12 @@ void version(__G)
 #  endif
 #elif defined(__LCC__)
       "LCC-Win32", "",
+#elif defined(__clang__) /* Clang probably needs to come before gcc */
+#  if defined(__CODEGEARC__) /* RAD Studio with BCC64X is a UNIX build */
+	  "Embarcadero C++ (Clang-ehnanced), ", __clang_patchlevel__,
+#  else
+	  "Clang/LLVM ", __VERSION__,
+#  endif
 #elif defined(__GNUC__)
 #  if defined(__RSXNT__)
 #    if (defined(__DJGPP__) && !defined(__EMX__))
@@ -2683,7 +2688,9 @@ void version(__G)
       "rsxnt(unknown) / gcc ",
 #    endif
 #  elif defined(__CYGWIN__)
-      "cygnus win32 / gcc ",
+      "Cygwin / gcc ",
+#  elif defined(__MINGW64__)
+      "MinGW-w64 / gcc ",
 #  elif defined(__MINGW32__)
       "mingw32 / gcc ",
 #  else
@@ -2697,7 +2704,7 @@ void version(__G)
 #  else
 	  (sprintf(buf, "Symantec C++ %d.%d", (__SC__ >> 8), (__SC__ & 0xFF), buf),
 #  endif
-#else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__GNUC__, !__SC__*/
+#else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__clang__, !__GNUC__, !__SC__*/
       "unknown compiler (SDK?)", "",
 #endif /* ?compilers */
 #ifdef _WIN64
