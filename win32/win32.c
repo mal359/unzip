@@ -2537,7 +2537,7 @@ void version(__G)
     __GDEF
 {
     int len;
-#if (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DJGPP__))
+#if (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DJGPP__) || defined(__SC__))
     char buf[80];
 #if (defined(_MSC_VER) && (_MSC_VER > 900))
     char buf2[80];
@@ -2574,6 +2574,61 @@ void version(__G)
 #  endif
 #  endif
 #elif defined(__BORLANDC__)
+#  if defined(__CODEGEARC__) /* Ripped from Embarcadero's documentation */
+#	if (__CODEGEARC__ == 0x0590)
+	  "CodeGear C++ 5.90 (C++Builder 2007)",
+#	elif (__CODEGEARC__ == 0x0591)
+	  "CodeGear C++ 5.91 (C++Builder 2007)",
+#	elif (__CODEGEARC__ == 0x0592)
+	  "CodeGear C++ 5.92 (C++Builder 2007)",
+#	elif (__CODEGEARC__ == 0x0593)
+	  "CodeGear C++ 5.93 (C++Builder 2007)",
+#	elif (__CODEGEARC__ == 0x0610)
+	  "CodeGear C++ 6.10 (C++Builder 2009)",
+#	elif (__CODEGEARC__ == 0x0620)
+	  "Embarcadero C++ 6.20 (C++Builder 2010)",
+#	elif (__CODEGEARC__ == 0x0631)
+	  "Embarcadero C++ 6.21 (C++Builder 2010)",
+#	elif (__CODEGEARC__ == 0x0630)
+	  "Embarcadero C++ 6.30 (C++Builder XE)",
+#	elif (__CODEGEARC__ == 0x0631)
+	  "Embarcadero C++ 6.31 (C++Builder XE)",
+#	elif (__CODEGEARC__ == 0x0640)
+	  "Embarcadero C++ 6.40 (C++Builder XE2)",
+#	elif (__CODEGEARC__ == 0x0650)
+	  "Embarcadero C++ 6.50 (C++Builder XE3)",
+#	elif (__CODEGEARC__ == 0x0651)
+	  "Embarcadero C++ 6.51 (C++Builder XE3)",
+#	elif (__CODEGEARC__ == 0x0660)
+	  "Embarcadero C++ 6.60 (C++Builder XE4)",
+#	elif (__CODEGEARC__ == 0x0670)
+	  "Embarcadero C++ 6.70 (C++Builder XE5)",
+#	elif (__CODEGEARC__ == 0x0680)
+	  "Embarcadero C++ 6.80 (C++Builder XE6)",
+#	elif (__CODEGEARC__ == 0x0690)
+	  "Embarcadero C++ 6.90 (C++Builder XE7)",
+#	elif (__CODEGEARC__ == 0x0700)
+	  "Embarcadero C++ 7.0 (C++Builder XE8)",
+#	elif (__CODEGEARC__ == 0x0710)
+	  "Embarcadero C++ 7.10 (C++Builder Seattle)",
+#	elif (__CODEGEARC__ == 0x0711)
+	  "Embarcadero C++ 7.11 (C++Builder Seattle)",  
+#	elif (__CODEGEARC__ == 0x0720)
+	  "Embarcadero C++ 7.20 (C++Builder Berlin)",
+#	elif (__CODEGEARC__ == 0x0730)
+	  "Embarcadero C++ 7.30 (C++Builder Tokyo)",
+#	elif (__CODEGEARC__ == 0x0740)
+	  "Embarcadero C++ 7.40 (C++Builder Rio)",
+#	elif (__CODEGEARC__ == 0x0750)
+	  "Embarcadero C++ 7.50 (C++Builder Sydney)",
+#	elif (__CODEGEARC__ == 0x0760)
+	  "Embarcadero C++ 7.60 (C++Builder Alexandria)",
+#	elif (__CODEGEARC__ == 0x0770)
+	  "Embarcadero C++ 7.70 (C++Builder Athens)",
+#	else
+	  "Embarcadero C++ later than 7.70",
+#   endif
+#  else
       "Borland C++",
 #  if (__BORLANDC__ < 0x0200)
       " 1.0",
@@ -2590,19 +2645,23 @@ void version(__G)
 #  elif (__BORLANDC__ == 0x0500)   /* __TURBOC__ = 0x0340 */
       " 5.0",
 #  elif (__BORLANDC__ == 0x0520)   /* __TURBOC__ = 0x0520 */
-      " 5.2 (C++ Builder 1.0)",
+      " 5.2 (C++Builder 1.0)",
 #  elif (__BORLANDC__ == 0x0530)   /* __TURBOC__ = 0x0530 */
-      " 5.3 (C++ Builder 3.0)",
+      " 5.3 (C++Builder 3.0)",
 #  elif (__BORLANDC__ == 0x0540)   /* __TURBOC__ = 0x0540 */
-      " 5.4 (C++ Builder 4.0)",
+      " 5.4 (C++Builder 4.0)",
 #  elif (__BORLANDC__ == 0x0550)   /* __TURBOC__ = 0x0550 */
-      " 5.5 (C++ Builder 5.0)",
+      " 5.5 (C++Builder 5.0)",
 #  elif (__BORLANDC__ == 0x0551)   /* __TURBOC__ = 0x0551 */
-      " 5.5.1 (C++ Builder 5.0.1)",
+      " 5.5.1 (C++Builder 5.0.1)",
 #  elif (__BORLANDC__ == 0x0560)   /* __TURBOC__ = 0x0560 */
-      " 6.0 (C++ Builder 6.0)",
+      " 5.6 (C++Builder 6.0)",
+#  elif (__BORLANDC__ == 0x0562)    /* __TURBOC__ = 0x0562 */
+      " 5.6.4 (C++BuilderX)",
+#  elif (__BORLANDC__ == 0x0570)   /* __TURBOC__ = 0x0570 */
+      " 5.7 (C++Builder 2006)",
 #  else
-      " later than 6.0",
+	  " (Silly hacked copy)",
 #  endif
 #elif defined(__LCC__)
       "LCC-Win32", "",
@@ -2631,6 +2690,13 @@ void version(__G)
       "gcc ",
 #  endif
       __VERSION__,
+#elif defined(__SC__)
+#  if defined(__DMC__)
+	  (sprintf(buf, "Digital Mars C/C++ %d.%d", __DMC__ >> 8, 
+		(__DMC__ & 0xF0) >> 4), buf);
+#  else
+	  (sprintf(buf, "Zortech C++ %d.%d", (__ZTC__ >> 8), (__ZTC__ & 0xFF), buf),
+#  endif
 #else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__GNUC__ */
       "unknown compiler (SDK?)", "",
 #endif /* ?compilers */

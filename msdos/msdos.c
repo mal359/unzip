@@ -1848,7 +1848,7 @@ void version(__G)
     __GDEF
 {
     int len;
-#if defined(__DJGPP__) || defined(__WATCOMC__) || \
+#if defined(__DJGPP__) || defined(__WATCOMC__) || defined(__ZTC__) \
     (defined(_MSC_VER) && (_MSC_VER != 800))
     char buf[80];
 #endif
@@ -1868,11 +1868,21 @@ void version(__G)
       __VERSION__,
 #elif defined(__WATCOMC__)
 #  if (__WATCOMC__ % 10 != 0)
-      "Watcom C/C++", (sprintf(buf, " %d.%02d", __WATCOMC__ / 100,
+#    if(__WATCOMC__ >= 1200)
+		"Open Watcom C/C++", (sprintf(buf, " %d.%d", 
+			(__WATCOMC__ / 100) - 11, (__WATCOMC__ % 100) / 10), buf),
+#	 else
+		"Watcom C/C++", (sprintf(buf, " %d.%02d", __WATCOMC__ / 100,
                                __WATCOMC__ % 100), buf),
+#	 endif
 #  else
+#    if(__WATCOMC__ >= 1200)
+		"Open Watcom C/C++", (sprintf(buf, " %d.%d", 
+			(__WATCOMC__ / 100) - 11, (__WATCOMC__ % 100) / 10), buf),
+#    else
       "Watcom C/C++", (sprintf(buf, " %d.%d", __WATCOMC__ / 100,
                                (__WATCOMC__ % 100) / 10), buf),
+#    endif
 #  endif
 #elif defined(__TURBOC__)
 #  ifdef __BORLANDC__
@@ -1932,6 +1942,12 @@ void version(__G)
 #    else
       "5.1 or earlier",
 #    endif
+#  endif
+#elif defined(__ZTC__)
+	  "Zortech C++", (sprintf(buf, "%d.%d", (__ZTC__ >> 8), (__ZTC__ & 0xFF), buf),
+#  if defined(__SC__)
+	  "Symantec C++", (sprintf(buf, "%d.%d", __SC__ >> 8, 
+		((__SC__ & 0xFF) == 0x32 ? 0 : __SC__ & 0xFF), buf),
 #  endif
 #else
       "unknown compiler", "",
