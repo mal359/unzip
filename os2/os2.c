@@ -2262,7 +2262,7 @@ void version(__G)
       " (16-bit)",
 #  endif
 #else
-      " and OS/2 based systems",
+      " (32-bit)",
 #endif
 
 #ifdef __DATE__
