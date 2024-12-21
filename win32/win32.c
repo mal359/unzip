@@ -2537,7 +2537,9 @@ void version(__G)
     __GDEF
 {
     int len;
-#if (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DJGPP__) || defined(__SC__))
+#if (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__DJGPP__) \
+    || defined(__SC__) || defined(__ICC) || defined(__PGIC__) \
+	|| defined (__POCC__) || defined (__ghs__))
     char buf[80];
 #if (defined(_MSC_VER) && (_MSC_VER > 900))
     char buf2[80];
@@ -2561,17 +2563,14 @@ void version(__G)
       "(bad version)",
 #  endif
 #elif defined(__WATCOMC__)
-#  if (__WATCOMC__ >= 1200)
-      (sprintf(buf, "Open Watcom C/C++ %d.%d", (__WATCOMC__ / 100) - 11,
-	   (__WATCOMC__ % 100) / 10), buf), "",
+#  if(__WATCOMC__ >= 1200)
+	  "Open Watcom C", (sprintf(buf, " %d.%d", (__WATCOMC__/100)-11,
+		(__WATCOMC__%100)/10), buf),
 #  else
-#  if (__WATCOMC__ % 10 > 0)
-      (sprintf(buf, "Watcom C/C++ %d.%02d", __WATCOMC__ / 100,
-       __WATCOMC__ % 100), buf), "",
-#  else
-	  (sprintf(buf, "Watcom C/C++ %d.%d", __WATCOMC__ / 100,
-       (__WATCOMC__ % 100) / 10), buf), "",
+	  "Watcom C", (sprintf(buf, " %d.%d", __WATCOMC__/100, __WATCOMC__%100),
+		buf),
 #  endif
+/* This is disgusting */
 #elif defined(__BORLANDC__)
 #  if defined(__CODEGEARC__) /* Ripped from Embarcadero's documentation */
 #	if (__CODEGEARC__ == 0x0590)
@@ -2662,15 +2661,22 @@ void version(__G)
 #  else
 	  " (Silly hacked copy)",
 #  endif
+#elif defined(__POCC__) /* Does Pelles C define __LCC__? Who knows. */
+	  (sprintf(buf, "PellesC %d.%d", __POCC__/100, __POCC__%100), buf);
 #elif defined(__LCC__)
-      "LCC-Win32", "",
+      "LCC-Win", "",
+#if defined(__PGIC__)
+	  (sprintf(buf, "Portland Group C %d.%d.%d", __PGIC__, __PGIC_MINOR__, 
+		__PGIC_PATCHLEVEL__), buf)
 #elif defined(__clang__) /* Clang probably needs to come before gcc */
 #  if defined(__CODEGEARC__) /* RAD Studio with BCC64X is a UNIX build */
 	  "Embarcadero C++ (Clang-ehnanced), ", __clang_patchlevel__,
+#  elif defined(__INTEL_LLVM_COMPILER)
+	  "Intel LLVM Compiler, ", __clang_patchlevel__, 
 #  else
 	  "Clang/LLVM ", __VERSION__,
 #  endif
-#elif defined(__GNUC__)
+#elif defined (__GNUC__) && !defined (__INTEL_COMPILER) /* Intel C lunacy */
 #  if defined(__RSXNT__)
 #    if (defined(__DJGPP__) && !defined(__EMX__))
       (sprintf(buf, "rsxnt(djgpp v%d.%02d) / gcc ",
@@ -2689,25 +2695,40 @@ void version(__G)
 #    endif
 #  elif defined(__CYGWIN__)
       "Cygwin / gcc ",
-#  elif defined(__MINGW64__)
-      "MinGW-w64 / gcc ",
 #  elif defined(__MINGW32__)
+#    if defined(__MINGW64_VERSION_MAJOR)
+      "MinGW-w64 / gcc ",
+#    else
       "mingw32 / gcc ",
+#    endif
 #  else
       "gcc ",
 #  endif
       __VERSION__,
 #elif defined(__SC__)
 #  if defined(__DMC__)
-	  (sprintf(buf, "Digital Mars C/C++ %d.%d", __DMC__ >> 8, 
-		(__DMC__ & 0xF0) >> 4), buf);
+	  (sprintf(buf, "Digital Mars C %d.%d", __DMC__ >> 8, __DMC__ & 0xFF, buf);
 #  else
 	  (sprintf(buf, "Symantec C++ %d.%d", (__SC__ >> 8), (__SC__ & 0xFF), buf),
 #  endif
-#else /* !_MSC_VER, !__WATCOMC__, !__BORLANDC__, !__LCC__, !__clang__, !__GNUC__, !__SC__*/
+#elif defined(__IBMC__)
+      (sprintf(buf, "IBM Visual Age C++ %d.%02d", __IBMC__/100,__IBMC__%100), buf),
+#elif defined(__HIGHC__)
+	  "Metaware High C ", /* no way to get version, ref: Watt-32 */
+#elif defined(__INTEL_COMPILER)
+	  (sprintf(buf, "Intel C %d.%d", __INTEL_COMPILER/100, 
+		__INTEL_COMPILER % 100), buf),
+#elif defined(__ghs__)
+	  (sprintf(buf, "Green Hills C %d.%d.%d", __GHS_VERSION_NUMBER__ / 100, 
+	  (__GHS_VERSION_NUMBER__ / 10) % 10, __GHS_VERSION_NUMBER__ % 10), buf),
+#elif defined(__ORANGEC__)
+	    "Orange C ", __VERSION__,
+#else /* Known compiler predefs */
       "unknown compiler (SDK?)", "",
 #endif /* ?compilers */
-#ifdef _WIN64
+#if defined(_M_IA64)
+	  "64-bit Windows ", "(Itanium)",
+#elif defined(_WIN64)
 	  "64-bit ", "Windows",
 #else
       "32-bit ", "Windows",

@@ -1570,7 +1570,7 @@ void version(__G)
 #if (defined(__SUNPRO_C))
     char cc_versbuf[17];
 #else
-#if (defined(__HP_cc) || defined(__IBMC__))
+#if (defined(__HP_cc) || defined(__IBMC__) || defined(__INTEL_COMPILER))
     char cc_versbuf[25];
 #else
 #if (defined(__DECC_VER))
@@ -1580,16 +1580,17 @@ void version(__G)
 #if (defined(CRAY) && defined(_RELEASE))
     char cc_versbuf[40];
 #else
-#if (defined(__MWERKS__) || defined(__PGI__) || defined(__WATCOMC__))
+#if (defined(__MWERKS__) || defined(__PGIC__) || defined(__WATCOMC__) \
+	|| defined (__ghs__))
     char cc_versbuf[25];
 #else
 #if (defined (sgi))
 	char cc_versbuf[17];
 #endif /* __TINYC__ || sgi */
-#endif /* __MWERKS__ || __PGI__ || __WATCOMC__ */
+#endif /* __MWERKS__ || __PGIC__ || __WATCOMC__ */
 #endif /* (CRAY && _RELEASE) */
 #endif /* __DECC_VER */
-#endif /* __HP_cc || __IBMC__ */
+#endif /* __HP_cc || __IBMC__ || __ICC */
 #endif /* __SUNPRO_C */
 #endif /* (__GNUC__ && NX_CURRENT_COMPILER_RELEASE) */
 
@@ -1610,12 +1611,15 @@ void version(__G)
 #  else
 #  if defined(__CODEGEARC__) /* RAD Studio with BCC64X is a UNIX build */
 	  "Embarcadero C++, ", __clang_patchlevel__,
+#  elif defined(__INTEL_LLVM_COMPILER)
+	  "Intel LLVM Compiler, ", __clang_patchlevel__, 
 #  else
 	  "Clang/LLVM ", __VERSION__,
+#  endif /* Intel */
 #  endif /* Embarcadero */
 #  endif /* Apple */
 #else
-#ifdef __GNUC__
+#ifdef defined (__GNUC__) && !defined (__INTEL_COMPILER) /* Intel C lunacy */
 #  ifdef NX_CURRENT_COMPILER_RELEASE
       (sprintf(cc_namebuf, "NeXT DevKit %d.%02d ",
         NX_CURRENT_COMPILER_RELEASE/100, NX_CURRENT_COMPILER_RELEASE%100),
@@ -1636,6 +1640,10 @@ void version(__G)
 #else
 #if defined(__SUNPRO_C)
       "SunPro C ", (sprintf(cc_versbuf, "version %x", __SUNPRO_C), cc_versbuf),
+#else
+#elif defined(__INTEL_COMPILER)
+	  (sprintf(cc_versbuf, "Intel C %d.%d, ", __INTEL_COMPILER/100,
+		__INTEL_COMPILER % 100), cc_versbuf),
 #else
 #if (defined(__HP_cc))
       "HP C ",
@@ -1684,16 +1692,20 @@ void version(__G)
 			   (__MWERKS_VERSION__ >> 8) & 0xF, 
 			   (__MWERKS_VERSION__ >> 4) & 0xF), cc_versbuf),
 #else
-#if defined(__PGI)
-	  "PGI C ", 
+#if defined(__PGIC__)
+	  "Portland Group C ", 
 	  (sprintf(cc_versbuf, "%d.%d.%d", 
 			   __PGIC__, __PGIC_MINOR__, __PGIC_PATCHLEVEL__), cc_versbuf),
 #else
 #if defined(__WATCOMC__)
-      "Open Watcom C/C++ ",
+      "Open Watcom C ",
 	  (sprintf(cc_versbuf, "%d.%d", 
 			   (__WATCOMC__ / 100) - 11, (__WATCOMC__ % 100) / 10),
 			   cc_versbuf),
+#else
+#if defined(__ghs__)
+	  (sprintf(buf, "Green Hills C %d.%d.%d, ", __GHS_VERSION_NUMBER__ / 100, 
+	  (__GHS_VERSION_NUMBER__ / 10) % 10, __GHS_VERSION_NUMBER__ % 10), buf),
 #else
 #ifdef __VERSION__
 #   ifndef IZ_CC_NAME
@@ -1706,6 +1718,7 @@ void version(__G)
 #   endif
       IZ_CC_NAME, "",
 #endif /* ?__VERSION__ */
+#endif /* __ghs__ */
 #endif /* ?__WATCOMC__ */
 #endif /* ?__PGI__ */
 #endif /* ?__MWERKS__ */
@@ -1714,6 +1727,7 @@ void version(__G)
 #endif /* sgi */
 #endif /* ?__DECC_VER */
 #endif /* ?__HP_cc */
+#endif /* __INTEL_COMPILER */
 #endif /* ?__SUNPRO_C */
 #endif /* ?__GNUC__ */
 #endif /* ?__Clang__ */

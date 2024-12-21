@@ -2192,7 +2192,13 @@ void version(__G)
     len = sprintf((char *)slide, LoadFarString(CompiledWith),
 
 #if defined(__GNUC__)
+#  ifdef __EMX__  /* __EMX__ is defined as "1" only (sigh) */
+      "emx+gcc ", __VERSION__,
+#  else
       "gcc ", __VERSION__,
+#  endif
+#elif defined(__HIGHC__)
+	  "Metaware High C ", /* no way to get version, ref: Watt-32 */
 #elif defined(__IBMC__)
       "IBM ",
 #  if (__IBMC__ < 200)
@@ -2204,10 +2210,11 @@ void version(__G)
 #  endif
 #elif defined(__WATCOMC__)
 #  if (__WATCOMC__ >= 1200)
-	  "Open Watcom C/C++", (sprintf(buf, " %d.%d", (__WATCOMC__ / 100) - 11, 
+	  "Open Watcom C", (sprintf(buf, " %d.%d", (__WATCOMC__ / 100) - 11, 
 		(__WATCOMC__ % 100) / 10, buf),
 #  else
-      "Watcom C/C++", (sprintf(buf, " (__WATCOMC__ = %d)", __WATCOMC__), buf),
+      "Watcom C", (sprintf(buf, " %d.%d", __WATCOMC__/100, 
+		__WATCOMC__ % 100), buf),
 #  endif
 #elif defined(__TURBOC__)
 #  ifdef __BORLANDC__
